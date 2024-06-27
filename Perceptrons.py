@@ -3,8 +3,6 @@ from random import randint, random
 from numpy import float16, float32, float64, int16, int32, int64, int8, ndarray, uint16, uint32, uint64, uint8 
 
 
-"Testing"
-
 def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
     """
     Verifies the type of and object (o).
