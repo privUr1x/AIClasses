@@ -1,6 +1,19 @@
-from typing import Any, Optional, Sized, Union, Tuple, overload
+from typing import Any, Sized, Union, Tuple
 from random import randint, random
-from numpy import float16, float32, float64, int16, int32, int64, int8, ndarray, uint16, uint32, uint64, uint8 
+from numpy import (
+    float16,
+    float32,
+    float64,
+    int16,
+    int32,
+    int64,
+    int8,
+    ndarray,
+    uint16,
+    uint32,
+    uint64,
+    uint8,
+)
 
 
 def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
@@ -56,27 +69,39 @@ def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
 
     return obj
 
+
 class SimplePerceptron:
     "Class representing a Perceptron (Unitary Neural DL Model)"
     _version = 0.01
 
     """
-    When making an instance of the class, 'X' and 'y' are required to train the model. The predictions are made by calling the instance. 
+    When making an instance of the class, 'X' and 'y' are required to train the model. The predictions are made by calling the instance.
     """
 
     def __init__(self, X: Union[list, ndarray], y: Union[list, ndarray]) -> None:
         self.__nptypes = (
-            int8, int16, int32, int64,
-            uint8, uint16, uint32, uint64,
-            float16, float32, float64,
-
+            int8,
+            int16,
+            int32,
+            int64,
+            uint8,
+            uint16,
+            uint32,
+            uint64,
+            float16,
+            float32,
+            float64,
         )
 
         self._identifier: int = randint(1, 10_000)
 
         # Training data
-        self._X: Union[list, ndarray] = verify_components_type(verify_type(X, (list, ndarray)), (int, float, *self.__nptypes))
-        self._y: Union[list, ndarray] = verify_components_type(verify_type(y, (list, ndarray)), (int, float, *self.__nptypes))
+        self._X: Union[list, ndarray] = verify_components_type(
+            verify_type(X, (list, ndarray)), (int, float, *self.__nptypes)
+        )
+        self._y: Union[list, ndarray] = verify_components_type(
+            verify_type(y, (list, ndarray)), (int, float, *self.__nptypes)
+        )
 
         # Model params
         self._bias: Union[int, float] = random()
@@ -87,11 +112,15 @@ class SimplePerceptron:
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         """Returns a prediction given X as inputs."""
-        verify_len(X, len(self._X)) # The input must be the same shape as the training inputs. 
-        verify_components_type(X, (int, float)) # Input data must be numeric.
+        verify_len(
+            X, len(self._X)
+        )  # The input must be the same shape as the training inputs.
+        verify_components_type(X, (int, float))  # Input data must be numeric.
 
         return SimplePerceptron.step(
-            sum(x * w for x, w in zip(verify_type(X, (list, ndarray)), self._weights)) # Equivalent to self._z but with a given X.
+            sum(
+                x * w for x, w in zip(verify_type(X, (list, ndarray)), self._weights)
+            )  # Equivalent to self._z but with a given X.
             + self._bias
         )
 
@@ -107,7 +136,9 @@ class SimplePerceptron:
 
     @X.setter
     def X(self, value):
-        self._X = verify_components_type(verify_type(value, (list, ndarray)), (int, float, *self.__nptypes))
+        self._X = verify_components_type(
+            verify_type(value, (list, ndarray)), (int, float, *self.__nptypes)
+        )
 
     @property
     def y(self):
@@ -116,7 +147,9 @@ class SimplePerceptron:
 
     @y.setter
     def y(self, value):
-        self._y = verify_components_type(verify_type(value, (list, ndarray)), (int, float, *self.__nptypes))
+        self._y = verify_components_type(
+            verify_type(value, (list, ndarray)), (int, float, *self.__nptypes)
+        )
 
     @property
     def b(self):
@@ -143,3 +176,9 @@ class SimplePerceptron:
             return 1
         else:
             return 0
+
+    def train() -> Tuple[list, list]:
+        """
+        Trains the model.
+        """
+        pass
