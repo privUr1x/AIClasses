@@ -177,8 +177,25 @@ class SimplePerceptron:
         else:
             return 0
 
-    def train() -> Tuple[list, list]:
+    def train(self) -> list:
         """
-        Trains the model.
+        Trains the model following the Perceptron Learning Rule.
+
+        Returns:
+            - list: The history loss.
         """
-        pass
+        
+        # Verifing data sizes compatibility
+        if len(self._X) / len(self._y) != self._n:
+            print("[!] Warning, X size and y size doesn't correspond.")
+
+        if len(self._X) < self._n: return []
+
+        # Narrowing down y for X
+        X = self._X
+        y = self._y[:len(self._X)/self._n] 
+
+
+
+        return []
+        
