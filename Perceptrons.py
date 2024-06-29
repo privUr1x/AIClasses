@@ -72,43 +72,49 @@ def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
 
 class SimplePerceptron:
     "Class representing a Perceptron (Unitary Neural DL Model)"
-    _version = 0.01
 
-    """
-    When making an instance of the class, 'X' and 'y' are required to train the model. The predictions are made by calling the instance.
-    """
+    __nptypes = (
+        int8,
+        int16,
+        int32,
+        int64,
+        uint8,
+        uint16,
+        uint32,
+        uint64,
+        float16,
+        float32,
+        float64,
+    )
 
-    def __init__(self, X: Union[list, ndarray], y: Union[list, ndarray]) -> None:
-        self.__nptypes = (
-            int8,
-            int16,
-            int32,
-            int64,
-            uint8,
-            uint16,
-            uint32,
-            uint64,
-            float16,
-            float32,
-            float64,
-        )
-
+    
+    def __init__(self, X: Union[list, ndarray], y: Union[list, ndarray], entries: int) -> None:
+        """
+        Builds an instance give X training data, y training data and entries.
+        
+        Args:
+            - X (list/ndarray): The X training data. 
+            - y (list/ndarray): The y training data.
+            - entries (int): The number of inputs of the model.
+        """
         self._identifier: int = randint(1, 10_000)
 
         # Training data
         self._X: Union[list, ndarray] = verify_components_type(
-            verify_type(X, (list, ndarray)), (int, float, *self.__nptypes)
+            verify_type(X, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
         )
         self._y: Union[list, ndarray] = verify_components_type(
-            verify_type(y, (list, ndarray)), (int, float, *self.__nptypes)
+            verify_type(y, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
         )
 
+        if isinstance(entries, float):
+            if int(entries) == entries:
+                entries = int(entries)
+
         # Model params
+        self._n = verify_type(entries, int)
         self._bias: Union[int, float] = random()
-        self._weights: list = [random() for _ in self._X]
-        self._z: Union[int, float] = (
-            sum([x * w for x, w in zip(self._X, self._weights)]) + self._bias
-        )
+        self._weights: list = [random() for _ in self._n]
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         """Returns a prediction given X as inputs."""
@@ -137,7 +143,7 @@ class SimplePerceptron:
     @X.setter
     def X(self, value):
         self._X = verify_components_type(
-            verify_type(value, (list, ndarray)), (int, float, *self.__nptypes)
+            verify_type(value, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
         )
 
     @property
@@ -148,7 +154,7 @@ class SimplePerceptron:
     @y.setter
     def y(self, value):
         self._y = verify_components_type(
-            verify_type(value, (list, ndarray)), (int, float, *self.__nptypes)
+            verify_type(value, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
         )
 
     @property
@@ -158,7 +164,7 @@ class SimplePerceptron:
 
     @b.setter
     def b(self, value):
-        self._bias = verify_type(value, (int, float, *self.__nptypes))
+        self._bias = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
 
     @property
     def w(self):
@@ -167,7 +173,7 @@ class SimplePerceptron:
 
     @w.setter
     def w(self, value):
-        self._w = verify_type(value, (int, float, *self.__nptypes))
+        self._w = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
 
     @staticmethod
     def step(x: Union[int, float]) -> int:
@@ -195,7 +201,8 @@ class SimplePerceptron:
         X = self._X
         y = self._y[:len(self._X)/self._n] 
 
-
+        # self._z: Union[int, float] = (
+            # sum([x * w for x, w in zip(self._X, self._weights)]) + self._bias
+        # )
 
         return []
-        
