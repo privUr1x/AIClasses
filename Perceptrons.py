@@ -1,4 +1,4 @@
-from typing import Any, Sized, Union, Tuple
+from typing import Any, List, Sized, Union, Tuple
 from random import randint, random
 from numpy import (
     float16,
@@ -87,13 +87,14 @@ class SimplePerceptron:
         float64,
     )
 
-    
-    def __init__(self, X: Union[list, ndarray], y: Union[list, ndarray], entries: int) -> None:
+    def __init__(
+        self, X: Union[list, ndarray], y: Union[list, ndarray], entries: int
+    ) -> None:
         """
         Builds an instance give X training data, y training data and entries.
-        
+
         Args:
-            - X (list/ndarray): The X training data. 
+            - X (list/ndarray): The X training data.
             - y (list/ndarray): The y training data.
             - entries (int): The number of inputs of the model.
         """
@@ -113,8 +114,9 @@ class SimplePerceptron:
 
         # Model params
         self._n = verify_type(entries, int)
-        self._bias: Union[int, float] = random()
-        self._weights: list = [random() for _ in self._n]
+        self._bias: float = random()
+        self._weights: List[float] = [random() for _ in range(self._n)]
+        self._lr: float = 1
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         """Returns a prediction given X as inputs."""
@@ -131,49 +133,60 @@ class SimplePerceptron:
         )
 
     @property
-    def id(self):
+    def id(self) -> int:
         """The id property."""
         return self._identifier
 
     @property
-    def X(self):
+    def X(self) -> Union[list, ndarray]:
         """The X property."""
         return self._X
 
     @X.setter
-    def X(self, value):
+    def X(self, value) -> None:
         self._X = verify_components_type(
-            verify_type(value, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
+            verify_type(value, (list, ndarray)),
+            (int, float, *SimplePerceptron.__nptypes),
         )
 
     @property
-    def y(self):
+    def y(self) -> Union[list, ndarray]:
         """The y property."""
         return self._y
 
     @y.setter
-    def y(self, value):
+    def y(self, value) -> None:
         self._y = verify_components_type(
-            verify_type(value, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
+            verify_type(value, (list, ndarray)),
+            (int, float, *SimplePerceptron.__nptypes),
         )
 
     @property
-    def b(self):
+    def b(self) -> float:
         """The bias property."""
         return self._bias
 
     @b.setter
-    def b(self, value):
+    def b(self, value) -> None:
         self._bias = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
 
     @property
-    def w(self):
+    def w(self) -> List[float]:
         """The w property."""
         return self._weights
 
     @w.setter
-    def w(self, value):
+    def w(self, value) -> None:
         self._w = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
+
+    @property
+    def learning_rate(self) -> float:
+        """The learning_rate property."""
+        return self._lr
+
+    @learning_rate.setter
+    def learning_rate(self, value) -> None:
+        self._lr = float(verify_type(value, (int, float, *SimplePerceptron.__nptypes)))
 
     @staticmethod
     def step(x: Union[int, float]) -> int:
@@ -183,26 +196,48 @@ class SimplePerceptron:
         else:
             return 0
 
-    def train(self) -> list:
+    def train(self, verbose=False) -> List[float]:
         """
         Trains the model following the Perceptron Learning Rule.
 
         Returns:
             - list: The history loss.
         """
-        
+        verify_type(verbose, bool)
+
         # Verifing data sizes compatibility
         if len(self._X) / len(self._y) != self._n:
             print("[!] Warning, X size and y size doesn't correspond.")
 
-        if len(self._X) < self._n: return []
+        if len(self._X) < self._n:
+            return []
 
         # Narrowing down y for X
         X = self._X
-        y = self._y[:len(self._X)/self._n] 
+        y = self._y[: int(len(self._X) / self._n)]
 
-        # self._z: Union[int, float] = (
-            # sum([x * w for x, w in zip(self._X, self._weights)]) + self._bias
-        # )
+        for i in range(len(y)):
+            # ith-epoch data
+            eX = X[i * self._n : (i + 1) * self._n]
+            ey = y[i]
+
+            z: Union[int, float] = SimplePerceptron.step(
+                sum([x * w for x, w in zip(eX, self._weights)]) + self._bias
+            )
+
+            if verbose:
+                print(f"""
+Epoch {i}:
+  Model Output: {z}
+  Expected Output: {ey}""")
+
+            # Updating params 
+            if z != ey:
+                for j in range(len(self._weights)):
+                    self._weights[j] += self._lr * (ey - z) * eX[j]
+                    self._bias += self._lr * (ey - z)
 
         return []
+
+    def predict(self) -> int:
+        pass
