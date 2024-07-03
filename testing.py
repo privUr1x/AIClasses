@@ -18,3 +18,11 @@ print(p._weights)
 print(p.train(verbose=True))
 print(p._weights)
 print(p._bias)
+
+# Setting correct config
+p._weights = [.5 , .5]
+p._bias = -1
+
+print(p([1,1]))
+print(p([0,0]))
+print(p([1,0]))
