@@ -1,6 +1,7 @@
-from typing import Any, List, Sized, Union, Tuple
 from random import randint, random
+from typing import Union, Any, Tuple, Sized, List
 from numpy import (
+    array,
     float16,
     float32,
     float64,
@@ -16,14 +17,16 @@ from numpy import (
 )
 
 
+# These functions must go to a new module (classtools)
+
 def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
     """
     Verifies the type of and object (o).
-    Excpetion:
+    Raises:
         - TypeError: raises if the object is not the expected type.
     """
     if not isinstance(obj, t):
-        raise TypeError(f"Expected {obj} to be {t} type.")
+        raise TypeError(f"Expected {obj} to be {t} type, got type {type(obj)}.")
 
     return obj
 
@@ -31,12 +34,12 @@ def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
 def verify_len(obj: Sized, n: int) -> Any:
     """
     Verifies the length of an object (o).
-    Expection:
+    Raises:
         - IndexError: raises if the object is different in length as expected.
     """
     if hasattr(obj, "__len__"):
         if len(obj) != n:
-            raise IndexError(f"Expected {obj} to be {n} in length.")
+            raise IndexError(f"Expected {obj} to be {n} in length, got length {len(obj)}.")
 
     return obj
 
@@ -44,7 +47,7 @@ def verify_len(obj: Sized, n: int) -> Any:
 def verify_iterable(obj: Union[list, ndarray]):
     """
     Verifies if an object is iterable.
-    Expection:
+    Raises:
         - TypeError: raises if the object is not iterable.
     """
     try:
@@ -65,7 +68,7 @@ def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
     """
     for i in range(len(obj)):
         if not isinstance(obj[i], etype):
-            raise ValueError(f"Expected {obj} to have {etype} components.")
+            raise ValueError(f"Expected {obj} to have {etype} type components, got {type(obj[i])}.")
 
     return obj
 
@@ -119,18 +122,8 @@ class SimplePerceptron:
         self._lr: float = 1
 
     def __call__(self, X: Union[list, ndarray]) -> int:
-        """Returns a prediction given X as inputs."""
-        verify_len(
-            X, len(self._X)
-        )  # The input must be the same shape as the training inputs.
-        verify_components_type(X, (int, float))  # Input data must be numeric.
+        return self.predict(X)
 
-        return SimplePerceptron.step(
-            sum(
-                x * w for x, w in zip(verify_type(X, (list, ndarray)), self._weights)
-            )  # Equivalent to self._z but with a given X.
-            + self._bias
-        )
 
     @property
     def id(self) -> int:
@@ -191,10 +184,7 @@ class SimplePerceptron:
     @staticmethod
     def step(x: Union[int, float]) -> int:
         verify_type(x, (int, float))
-        if x >= 0:
-            return 1
-        else:
-            return 0
+        return 1 if x >= 0 else 0
 
     def train(self, verbose=False) -> List[float]:
         """
@@ -206,38 +196,45 @@ class SimplePerceptron:
         verify_type(verbose, bool)
 
         # Verifing data sizes compatibility
-        if len(self._X) / len(self._y) != self._n:
+        if len(self._X) % self._n != 0:
             print("[!] Warning, X size and y size doesn't correspond.")
 
         if len(self._X) < self._n:
             return []
 
-        # Narrowing down y for X
-        X = self._X
-        y = self._y[: int(len(self._X) / self._n)]
+        history: list = []
 
-        for i in range(len(y)):
-            # ith-epoch data
-            eX = X[i * self._n : (i + 1) * self._n]
-            ey = y[i]
+        for epoch in range(len(self._y)):
+            # Narrowing down y for X
+            eX = self._X[epoch * self._n : (epoch + 1) * self._n]
+            ey = self._y[epoch]
 
-            z: Union[int, float] = SimplePerceptron.step(
-                sum([x * w for x, w in zip(eX, self._weights)]) + self._bias
-            )
+            z = self.__call__(eX)
+
+            # Updating parameters
+            if z != ey:
+                for i in range(len(self._weights)):
+                    self._weights[i] += self._lr * (ey - z) * eX[i]
+                self._bias += self._lr * (ey - z)
+            
+            # Calculate loss MSE for the current epoch
+            epoch_loss = sum((self._y[i] - self.__call__(self._X[i * self._n : (i + 1) * self._n])) ** 2 for i in range(len(self._y))) / len(self._y)
+            history.append(epoch_loss)
 
             if verbose:
-                print(f"""
-Epoch {i}:
-  Model Output: {z}
-  Expected Output: {ey}""")
+                print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}\n\tLoss: {epoch_loss}")
 
-            # Updating params 
-            if z != ey:
-                for j in range(len(self._weights)):
-                    self._weights[j] += self._lr * (ey - z) * eX[j]
-                    self._bias += self._lr * (ey - z)
+        return history
 
-        return []
+    def predict(self, X: Union[list, ndarray]) -> int:
+        """Returns a prediction given X as inputs."""
+        verify_len(
+            X, self._n  # The input must be the same shape as n.
+        )
+        verify_components_type(
+            X, (int, float, *SimplePerceptron.__nptypes)  # Input data must be numeric.
+        )
 
-    def predict(self) -> int:
-        pass
+        return SimplePerceptron.step(
+            sum(x * w for x, w in zip(X, self._weights)) + self._bias
+        )
