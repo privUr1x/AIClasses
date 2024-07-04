@@ -72,7 +72,7 @@ def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
     return obj
 
 
-class SimplePerceptron:
+class Perceptron:
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
     __nptypes = (
@@ -104,10 +104,10 @@ class SimplePerceptron:
 
         # Training data
         self._X: Union[list, ndarray] = verify_components_type(
-            verify_type(X, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
+            verify_type(X, (list, ndarray)), (int, float, *Perceptron.__nptypes)
         )
         self._y: Union[list, ndarray] = verify_components_type(
-            verify_type(y, (list, ndarray)), (int, float, *SimplePerceptron.__nptypes)
+            verify_type(y, (list, ndarray)), (int, float, *Perceptron.__nptypes)
         )
 
         if isinstance(entries, float):
@@ -138,7 +138,7 @@ class SimplePerceptron:
     def X(self, value) -> None:
         self._X = verify_components_type(
             verify_type(value, (list, ndarray)),
-            (int, float, *SimplePerceptron.__nptypes),
+            (int, float, *Perceptron.__nptypes),
         )
 
     @property
@@ -150,7 +150,7 @@ class SimplePerceptron:
     def y(self, value) -> None:
         self._y = verify_components_type(
             verify_type(value, (list, ndarray)),
-            (int, float, *SimplePerceptron.__nptypes),
+            (int, float, *Perceptron.__nptypes),
         )
 
     @property
@@ -160,7 +160,7 @@ class SimplePerceptron:
 
     @b.setter
     def b(self, value) -> None:
-        self._bias = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
+        self._bias = verify_type(value, (int, float, *Perceptron.__nptypes))
 
     @property
     def w(self) -> List[float]:
@@ -169,7 +169,7 @@ class SimplePerceptron:
 
     @w.setter
     def w(self, value) -> None:
-        self._w = verify_type(value, (int, float, *SimplePerceptron.__nptypes))
+        self._w = verify_type(value, (int, float, *Perceptron.__nptypes))
 
     @property
     def learning_rate(self) -> float:
@@ -178,7 +178,7 @@ class SimplePerceptron:
 
     @learning_rate.setter
     def learning_rate(self, value) -> None:
-        self._lr = float(verify_type(value, (int, float, *SimplePerceptron.__nptypes)))
+        self._lr = float(verify_type(value, (int, float, *Perceptron.__nptypes)))
 
     @staticmethod
     def step(x: Union[int, float]) -> int:
@@ -231,9 +231,9 @@ class SimplePerceptron:
             X, self._n  # The input must be the same shape as n.
         )
         verify_components_type(
-            X, (int, float, *SimplePerceptron.__nptypes)  # Input data must be numeric.
+            X, (int, float, *Perceptron.__nptypes)  # Input data must be numeric.
         )
 
-        return SimplePerceptron.step(
+        return Perceptron.step(
             sum(x * w for x, w in zip(X, self._weights)) + self._bias
         )
