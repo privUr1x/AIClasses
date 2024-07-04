@@ -16,7 +16,6 @@ from numpy import (
     uint8,
 )
 
-
 # These functions must go to a new module (classtools)
 
 def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
@@ -74,7 +73,7 @@ def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
 
 
 class SimplePerceptron:
-    "Class representing a Perceptron (Unitary Neural DL Model)"
+    "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
     __nptypes = (
         int8,
@@ -119,7 +118,7 @@ class SimplePerceptron:
         self._n = verify_type(entries, int)
         self._bias: float = random()
         self._weights: List[float] = [random() for _ in range(self._n)]
-        self._lr: float = 1
+        self._lr: float = 0.1
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         return self.predict(X)
