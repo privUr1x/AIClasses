@@ -29,7 +29,7 @@ class Verifiers(Tool):
         self.info = "Meant to be used to simplify commonly used conditionals."
 
     @staticmethod
-    def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> type(obj):
+    def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
         """
         Verifies if obj is an instance of a given type
         Raises:
@@ -41,7 +41,7 @@ class Verifiers(Tool):
         return obj
 
     @staticmethod
-    def verify_len(obj: Sized, n: int) -> type(obj):
+    def verify_len(obj: Sized, n: int) -> Any:
         """
         Verifies the length of an object (o).
         Raises:
@@ -70,7 +70,7 @@ class Verifiers(Tool):
         return obj
 
     @staticmethod
-    def verify_iterable(obj: Iterable) -> type(obj):
+    def verify_iterable(obj: Iterable) -> Any:
         """
         Verifies if an object is iterable.
         Raises:
@@ -84,7 +84,7 @@ class Verifiers(Tool):
         return obj
 
     @staticmethod
-    def verify_components_type(obj: Compound, etype: Union[type, Tuple[type, ...]]) -> type(obj):
+    def verify_components_type(obj: Compound, etype: Union[type, Tuple[type, ...]]) -> Any:
         """
         Check if an object has the correct containing type.
         Object must have __len__ and __getitem__ methods defined.
