@@ -1,5 +1,6 @@
 from random import randint, random
 from typing import Union, Any, Tuple, Sized, List
+from classtools import Verifiers
 from numpy import (
     array,
     float16,
@@ -16,61 +17,10 @@ from numpy import (
     uint8,
 )
 
-# These functions must go to a new module (classtools)
-
-def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
-    """
-    Verifies the type of and object (o).
-    Raises:
-        - TypeError: raises if the object is not the expected type.
-    """
-    if not isinstance(obj, t):
-        raise TypeError(f"Expected {obj} to be {t} type, got type {type(obj)}.")
-
-    return obj
-
-
-def verify_len(obj: Sized, n: int) -> Any:
-    """
-    Verifies the length of an object (o).
-    Raises:
-        - IndexError: raises if the object is different in length as expected.
-    """
-    if hasattr(obj, "__len__"):
-        if len(obj) != n:
-            raise IndexError(f"Expected {obj} to be {n} in length, got length {len(obj)}.")
-
-    return obj
-
-
-def verify_iterable(obj: Union[list, ndarray]):
-    """
-    Verifies if an object is iterable.
-    Raises:
-        - TypeError: raises if the object is not iterable.
-    """
-    try:
-        iter(obj)
-    except TypeError:
-        raise TypeError(f"The object of type {type(obj).__name__} is not iterable")
-
-
-def verify_components_type(obj, etype: Union[type, Tuple[type, ...]]) -> Any:
-    """
-    Check if an object has the correct containing type.
-    Object must have __len__ and __getitem__ methods defined.
-    Args:
-        obj (Any): The object to check.
-        etype type: The expected components type(s).
-    Returns:
-        obj: the given object.
-    """
-    for i in range(len(obj)):
-        if not isinstance(obj[i], etype):
-            raise ValueError(f"Expected {obj} to have {etype} type components, got {type(obj[i])}.")
-
-    return obj
-
+verify_type = Verifiers.verify_type 
+verify_len = Verifiers.verify_len
+verify_iterable = Verifiers.verify_iterable
+verify_components_type = Verifiers.verify_components_type
 
 class Perceptron:
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from Perceptrons import Perceptron
+from Arquitectures import Perceptron
 from random import randint
 
 ENTRIES: int = 2
