@@ -23,7 +23,81 @@ verify_iterable = Verifiers.verify_iterable
 verify_components_type = Verifiers.verify_components_type
 
 
-class Perceptron(object):
+class Neuron:
+    """Class representing an artificial neuron"""
+
+    __nptypes = (
+        int8,
+        int16,
+        int32,
+        int64,
+        uint8,
+        uint16,
+        uint32,
+        uint64,
+        float16,
+        float32,
+        float64,
+    )
+
+    def __init__(self) -> None:
+        self._identifier: int = randint(1, 10_000)
+        self._bias: float = random()
+        self._inputs: list = []
+        self._n: int = len(self._inputs)
+        self._weights: list = [random() for _ in range(len(self._inputs))]
+        self._activation: Callable = self.__step
+        self._z: float = self._activation(
+            sum(x * w for x, w in zip(self._inputs, self._weights)) + self._bias
+        )
+
+        self._layer: int
+        self._i: int
+
+    def __step(self, x: Union[int, float]) -> int:
+        verify_type(x, (int, float, *Neuron.__nptypes))
+        return 1 if x >= 0 else 0
+
+    @property
+    def b(self) -> float:
+        """The bias property."""
+        return self._bias
+
+    @b.setter
+    def b(self, value: Union[int, float]) -> None:
+        self._bias = float(verify_type(value, (int, float, *Neuron.__nptypes)))
+
+    @property
+    def inputs(self) -> list:
+        """The inputs property."""
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, value: list) -> None:
+        self._inputs = verify_type(value, list)
+
+    @property
+    def w(self) -> list:
+        """The w property."""
+        return self._w
+
+    @w.setter
+    def w(self, value) -> None:
+        self._w = verify_type(value, (list, ndarray))
+
+    @property
+    def activation(self) -> Callable:
+        """The activation property."""
+        return self._activation
+
+    @activation.setter
+    def activation(self, value: Callable) -> None:
+        if not callable(value):
+            raise TypeError(f"Expected {value} to be callable.")
+
+        self._activation = value
+
+class Perceptron(Neuron):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
     __nptypes = (
@@ -45,11 +119,9 @@ class Perceptron(object):
         Builds an instance give X training data, y training data and entries.
 
         Args:
-            - X (list/ndarray): The X training data.
-            - y (list/ndarray): The y training data.
             - entries (int): The number of inputs of the model.
         """
-        self._identifier: int = randint(1, 10_000)
+        super().__init__()
 
         # Training data
         self._X: Union[list, ndarray]
@@ -127,11 +199,6 @@ class Perceptron(object):
     def learning_rate(self, value) -> None:
         self._lr = float(verify_type(value, (int, float, *Perceptron.__nptypes)))
 
-    @staticmethod
-    def step(x: Union[int, float]) -> int:
-        verify_type(x, (int, float))
-        return 1 if x >= 0 else 0
-
     def fit(
         self, X: Union[list, ndarray], y: Union[list, ndarray], verbose=False
     ) -> List[float]:
@@ -141,7 +208,8 @@ class Perceptron(object):
         Returns:
             - list: The history loss.
         """
-
+        
+        # Verify type of X and y, and verbose option
         self.X = verify_components_type(
             verify_type(X, (list, ndarray)), (int, float, *Perceptron.__nptypes)
         )
@@ -159,6 +227,7 @@ class Perceptron(object):
         if len(self._X) < self._n:
             return []
 
+        # Training
         history: list = []
 
         for epoch in range(len(self._y)):
@@ -196,79 +265,6 @@ class Perceptron(object):
             X, (int, float, *Perceptron.__nptypes)  # Input data must be numeric.
         )
 
-        return Perceptron.step(
+        return self._activation(
             sum(x * w for x, w in zip(X, self._weights)) + self._bias
         )
-
-
-class Neuron:
-    """Class representing an artificial neuron"""
-
-    __nptypes = (
-        int8,
-        int16,
-        int32,
-        int64,
-        uint8,
-        uint16,
-        uint32,
-        uint64,
-        float16,
-        float32,
-        float64,
-    )
-
-    def __init__(self) -> None:
-        self._bias: float = random()
-        self._inputs: list = []
-        self._weights: list = [random() for _ in range(len(self._inputs))]
-        self._activation: Callable = self.__step
-        self._z = self._activation(
-            sum(x * w for x, w in zip(self._inputs, self._weights)) + self._bias
-        )
-
-        self._layer: int
-        self._i: int
-
-    def __step(self, x: Union[int, float]) -> int:
-        verify_type(x, (int, float, *Neuron.__nptypes))
-        return 1 if x >= 0 else 0
-
-    @property
-    def b(self) -> float:
-        """The bias property."""
-        return self._bias
-
-    @b.setter
-    def b(self, value: Union[int, float]) -> None:
-        self._bias = float(verify_type(value, (int, float, *Neuron.__nptypes)))
-
-    @property
-    def inputs(self) -> list:
-        """The inputs property."""
-        return self._inputs
-
-    @inputs.setter
-    def inputs(self, value: list) -> None:
-        self._inputs = verify_type(value, list)
-
-    @property
-    def w(self) -> list:
-        """The w property."""
-        return self._w
-
-    @w.setter
-    def w(self, value) -> None:
-        self._w = verify_type(value, (list, ndarray))
-
-    @property
-    def activation(self) -> Callable:
-        """The activation property."""
-        return self._activation
-
-    @activation.setter
-    def activation(self, value: Callable) -> None:
-        if not callable(value):
-            raise TypeError("Expected value to be callable.")
-
-        self._activation = value
