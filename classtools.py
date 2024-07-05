@@ -29,7 +29,7 @@ class Verifiers(Tool):
         self.info = "Meant to be used to simplify commonly used conditionals."
 
     @staticmethod
-    def verify_type(obj: Any, t: Union[type, Tuple[type, ...]]) -> Any:
+    def verify_type(obj: Any, t: Union[type, Tuple]) -> Any:
         """
         Verifies if obj is an instance of a given type
         Raises:
