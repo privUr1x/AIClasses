@@ -1,8 +1,8 @@
-from random import randint, random
-from typing import Callable, Union, Any, Tuple, Sized, List
-from ..classtools import Verifiers
+from collections.abc import Callable
+from random import randint, random, seed
+from typing import Union, List
+from classtools import Verifiers
 from numpy import (
-    array,
     float16,
     float32,
     float64,
@@ -23,7 +23,7 @@ verify_iterable = Verifiers.verify_iterable
 verify_components_type = Verifiers.verify_components_type
 
 
-class Perceptron:
+class Perceptron(object):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
     __nptypes = (
@@ -40,9 +40,7 @@ class Perceptron:
         float64,
     )
 
-    def __init__(
-        self, X: Union[list, ndarray], y: Union[list, ndarray], entries: int
-    ) -> None:
+    def __init__(self, entries: int) -> None:
         """
         Builds an instance give X training data, y training data and entries.
 
@@ -54,12 +52,8 @@ class Perceptron:
         self._identifier: int = randint(1, 10_000)
 
         # Training data
-        self._X: Union[list, ndarray] = verify_components_type(
-            verify_type(X, (list, ndarray)), (int, float, *Perceptron.__nptypes)
-        )
-        self._y: Union[list, ndarray] = verify_components_type(
-            verify_type(y, (list, ndarray)), (int, float, *Perceptron.__nptypes)
-        )
+        self._X: Union[list, ndarray]
+        self._y: Union[list, ndarray]
 
         if isinstance(entries, float):
             if int(entries) == entries:
@@ -70,6 +64,9 @@ class Perceptron:
         self._bias: float = random()
         self._weights: List[float] = [random() for _ in range(self._n)]
         self._lr: float = 0.1
+
+        self._rndmseed: int = 42
+        seed(self._rndmseed)
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         return self.predict(X)
@@ -135,13 +132,24 @@ class Perceptron:
         verify_type(x, (int, float))
         return 1 if x >= 0 else 0
 
-    def train(self, verbose=False) -> List[float]:
+    def fit(
+        self, X: Union[list, ndarray], y: Union[list, ndarray], verbose=False
+    ) -> List[float]:
         """
         Trains the model following the Perceptron Learning Rule.
 
         Returns:
             - list: The history loss.
         """
+
+        self.X = verify_components_type(
+            verify_type(X, (list, ndarray)), (int, float, *Perceptron.__nptypes)
+        )
+
+        self.y = verify_components_type(
+            verify_type(y, (list, ndarray)), (int, float, *Perceptron.__nptypes)
+        )
+
         verify_type(verbose, bool)
 
         # Verifing data sizes compatibility
@@ -191,3 +199,76 @@ class Perceptron:
         return Perceptron.step(
             sum(x * w for x, w in zip(X, self._weights)) + self._bias
         )
+
+
+class Neuron:
+    """Class representing an artificial neuron"""
+
+    __nptypes = (
+        int8,
+        int16,
+        int32,
+        int64,
+        uint8,
+        uint16,
+        uint32,
+        uint64,
+        float16,
+        float32,
+        float64,
+    )
+
+    def __init__(self) -> None:
+        self._bias: float = random()
+        self._inputs: list = []
+        self._weights: list = [random() for _ in range(len(self._inputs))]
+        self._activation: Callable = self.__step
+        self._z = self._activation(
+            sum(x * w for x, w in zip(self._inputs, self._weights)) + self._bias
+        )
+
+        self._layer: int
+        self._i: int
+
+    def __step(self, x: Union[int, float]) -> int:
+        verify_type(x, (int, float, *Neuron.__nptypes))
+        return 1 if x >= 0 else 0
+
+    @property
+    def b(self) -> float:
+        """The bias property."""
+        return self._bias
+
+    @b.setter
+    def b(self, value: Union[int, float]) -> None:
+        self._bias = float(verify_type(value, (int, float, *Neuron.__nptypes)))
+
+    @property
+    def inputs(self) -> list:
+        """The inputs property."""
+        return self._inputs
+
+    @inputs.setter
+    def inputs(self, value: list) -> None:
+        self._inputs = verify_type(value, list)
+
+    @property
+    def w(self) -> list:
+        """The w property."""
+        return self._w
+
+    @w.setter
+    def w(self, value) -> None:
+        self._w = verify_type(value, (list, ndarray))
+
+    @property
+    def activation(self) -> Callable:
+        """The activation property."""
+        return self._activation
+
+    @activation.setter
+    def activation(self, value: Callable) -> None:
+        if not callable(value):
+            raise TypeError("Expected value to be callable.")
+
+        self._activation = value
