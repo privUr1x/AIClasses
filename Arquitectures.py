@@ -1,5 +1,6 @@
 from collections.abc import Callable
-from random import randint, random, seed
+from random import randint, random
+from functions import relu
 from typing import Union, List
 from classtools import Verifiers
 from numpy import (
@@ -23,7 +24,7 @@ verify_iterable = Verifiers.verify_iterable
 verify_components_type = Verifiers.verify_components_type
 
 
-class Neuron:
+class Neuron(object):
     """Class representing an artificial neuron"""
 
     __nptypes = (
@@ -43,20 +44,16 @@ class Neuron:
     def __init__(self) -> None:
         self._identifier: int = randint(1, 10_000)
         self._bias: float = random()
-        self._inputs: list = []
-        self._n: int = len(self._inputs)
-        self._weights: list = [random() for _ in range(len(self._inputs))]
-        self._activation: Callable = self.__step
+        self._inputnodes: list = []
+        self._n: int = len(self._inputnodes)
+        self._weights: list = [random() for _ in range(len(self._inputnodes))]
+        self._activation: Callable = relu
         self._z: float = self._activation(
-            sum(x * w for x, w in zip(self._inputs, self._weights)) + self._bias
+            sum(x * w for x, w in zip(self._inputnodes, self._weights)) + self._bias
         )
 
         self._layer: int
         self._i: int
-
-    def __step(self, x: Union[int, float]) -> int:
-        verify_type(x, (int, float, *Neuron.__nptypes))
-        return 1 if x >= 0 else 0
 
     @property
     def b(self) -> float:
@@ -70,11 +67,11 @@ class Neuron:
     @property
     def inputs(self) -> list:
         """The inputs property."""
-        return self._inputs
+        return self._inputnodes
 
     @inputs.setter
     def inputs(self, value: list) -> None:
-        self._inputs = verify_type(value, list)
+        self._inputnodes = verify_type(value, list)
 
     @property
     def w(self) -> list:
@@ -96,6 +93,7 @@ class Neuron:
             raise TypeError(f"Expected {value} to be callable.")
 
         self._activation = value
+
 
 class Perceptron(Neuron):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
@@ -123,22 +121,18 @@ class Perceptron(Neuron):
         """
         super().__init__()
 
-        # Training data
-        self._X: Union[list, ndarray]
-        self._y: Union[list, ndarray]
-
         if isinstance(entries, float):
             if int(entries) == entries:
                 entries = int(entries)
 
+        del self._inputnodes
+
         # Model params
-        self._n = verify_type(entries, int)
+        self._n = verify_type(entries, int)  # Model arquitecture
         self._bias: float = random()
         self._weights: List[float] = [random() for _ in range(self._n)]
         self._lr: float = 0.1
-
-        self._rndmseed: int = 42
-        seed(self._rndmseed)
+        self._activation = self.step
 
     def __call__(self, X: Union[list, ndarray]) -> int:
         return self.predict(X)
@@ -199,6 +193,12 @@ class Perceptron(Neuron):
     def learning_rate(self, value) -> None:
         self._lr = float(verify_type(value, (int, float, *Perceptron.__nptypes)))
 
+    @staticmethod
+    def step(x) -> int:
+        verify_type(x, (int, float, *Perceptron.__nptypes))
+
+        return 0 if x < 0 else 1
+
     def fit(
         self, X: Union[list, ndarray], y: Union[list, ndarray], verbose=False
     ) -> List[float]:
@@ -208,32 +208,32 @@ class Perceptron(Neuron):
         Returns:
             - list: The history loss.
         """
-        
+
         # Verify type of X and y, and verbose option
-        self.X = verify_components_type(
+        X = verify_components_type(
             verify_type(X, (list, ndarray)), (int, float, *Perceptron.__nptypes)
         )
 
-        self.y = verify_components_type(
+        y = verify_components_type(
             verify_type(y, (list, ndarray)), (int, float, *Perceptron.__nptypes)
         )
 
         verify_type(verbose, bool)
 
         # Verifing data sizes compatibility
-        if len(self._X) % self._n != 0:
+        if len(X) % self._n != 0:
             print("[!] Warning, X size and y size doesn't correspond.")
 
-        if len(self._X) < self._n:
+        if len(X) < self._n:
             return []
 
         # Training
         history: list = []
 
-        for epoch in range(len(self._y)):
+        for epoch in range(len(y)):
             # Narrowing down y for X
-            eX = self._X[epoch * self._n : (epoch + 1) * self._n]
-            ey = self._y[epoch]
+            eX = X[epoch * self._n : (epoch + 1) * self._n]
+            ey = y[epoch]
 
             z = self.__call__(eX)
 
@@ -245,10 +245,10 @@ class Perceptron(Neuron):
 
             # Calculate loss MSE for the current epoch
             epoch_loss = sum(
-                (self._y[i] - self.__call__(self._X[i * self._n : (i + 1) * self._n]))
+                (y[i] - self.__call__(X[i * self._n : (i + 1) * self._n]))
                 ** 2
-                for i in range(len(self._y))
-            ) / len(self._y)
+                for i in range(len(y))
+            ) / len(y)
             history.append(epoch_loss)
 
             if verbose:

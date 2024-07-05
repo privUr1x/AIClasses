@@ -12,6 +12,8 @@ and_y: list = [int(bool(X[i]) and bool(X[i + 1])) for i in range(0, len(X) - 1, 
 
 and_g = Perceptron(ENTRIES)
 
+print(dir(and_g))
+
 print("\nLoss history for AND", and_g.fit(X, and_y, verbose=True))
 print("AND weights", and_g._weights)
 print("AND bias", and_g._bias)
