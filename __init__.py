@@ -18,9 +18,9 @@ try:
         uint8,
     )
 
-global __nptypes
+global nptypes
 
-__nptypes = (
+nptypes = (
     int8,
     int16,
     int32,

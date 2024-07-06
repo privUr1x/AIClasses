@@ -44,9 +44,9 @@ npnum = TypeVar(
     float_,
 )
 
-global __nptypes
+global nptypes
 
-__nptypes = (
+nptypes = (
     int8,
     int16,
     int32,

@@ -25,7 +25,9 @@ from numpy import (
 
 verify_type = Verifiers.verify_type
 
-__nptypes = (
+global nptypes
+
+nptypes = (
     int8,
     int16,
     int32,
@@ -68,8 +70,8 @@ def step(x: Union[int, float, npnum], threshold: Union[int, float, npnum] = 0) -
     Returns:
         int: 1 if x >= threshold, else 0.
     """
-    x = verify_type(x, (int, float, *__nptypes))
-    threshold = verify_type(threshold, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
+    threshold = verify_type(threshold, (int, float, *nptypes))
     return 1 if x >= threshold else 0
 
 
@@ -83,7 +85,7 @@ def sigmoid(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Sigmoid of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
     return 1 / (1 + exp(-x))
 
 
@@ -97,7 +99,7 @@ def relu(x: Union[int, float, npnum]) -> float:
     Returns:
         float: ReLU of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
     return max(0, x)
 
 
@@ -111,7 +113,7 @@ def leaky_relu(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Leaky ReLU of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
     return x if x >= 0 else x / 10
 
 
@@ -125,7 +127,7 @@ def tanh(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Tanh of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
     return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
 
@@ -163,8 +165,8 @@ def prelu(x: Union[int, float, npnum], lp: Union[int, float, npnum]) -> float:
     Returns:
         float: PReLU of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
-    lp = verify_type(lp, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
+    lp = verify_type(lp, (int, float, *nptypes))
     return max(lp * x, x)
 
 
@@ -179,8 +181,8 @@ def elu(x: Union[int, float, npnum], alpha: Union[int, float, npnum]) -> float:
     Returns:
         float: ELU of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
-    alpha = verify_type(alpha, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
+    alpha = verify_type(alpha, (int, float, *nptypes))
     return x if x > 0 else alpha * (exp(x) - 1)
 
 
@@ -194,5 +196,5 @@ def softplus(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Softplus of x.
     """
-    x = verify_type(x, (int, float, *__nptypes))
+    x = verify_type(x, (int, float, *nptypes))
     return log(1 + exp(x))
