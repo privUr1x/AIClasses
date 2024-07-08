@@ -12,9 +12,8 @@ from math import log
 verify_type = Verifiers.verify_type
 verify_components_type = Verifiers.verify_components_type
 
-def mean_squared_error(
-    y_true: Union[int, float], y_pred: Union[int, float]
-) -> float:
+
+def mean_squared_error(y_true: Union[int, float], y_pred: Union[int, float]) -> float:
     """
     Calcula el error cuadrático medio entre las etiquetas verdaderas y las predicciones.
 
@@ -28,9 +27,7 @@ def mean_squared_error(
     return (y_true - y_pred) ** 2
 
 
-def binary_cross_entropy(
-    y_true: Union[int, float], y_pred: Union[int, float]
-) -> float:
+def binary_cross_entropy(y_true: Union[int, float], y_pred: Union[int, float]) -> float:
     """
     Calcula la entropía cruzada binaria entre las etiquetas verdaderas y las predicciones.
 
@@ -102,3 +99,12 @@ def kl_divergence(p: list, q: list) -> float:
         if p[i] != 0:
             divergence += p[i] * log(p[i] / q[i])
     return divergence
+
+
+loss_map: dict = {
+    "mse": mean_squared_error,
+    "cross-entropy": categorical_cross_entropy,
+    "binary-cross-entropy": binary_cross_entropy,
+    "huber": huber_loss,
+    "kl-divergence": kl_divergence,
+}
