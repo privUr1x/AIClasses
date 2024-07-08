@@ -1,64 +1,19 @@
-from collections.abc import Callable
 from random import randint, random
 from activations import relu
-from loss_func import *
-from typing import Union, List, TypeVar
-from classtools import Verifiers
-from numpy import (
-    float16,
-    float32,
-    float64,
-    float_,
-    int16,
-    int32,
-    int64,
-    int8,
-    ndarray,
-    uint16,
-    uint32,
-    uint64,
-    uint8,
+from loss_func import (
+    mean_squared_error,
+    binary_cross_entropy,
+    categorical_cross_entropy,
+    huber_loss,
+    kl_divergence,
 )
-
-import loss_func
+from typing import Optional, Union, List, Callable
+from classtools import Verifiers
 
 verify_type = Verifiers.verify_type
 verify_len = Verifiers.verify_len
 verify_iterable = Verifiers.verify_iterable
 verify_components_type = Verifiers.verify_components_type
-
-global nptypes
-
-nptypes = (
-    int8,
-    int16,
-    int32,
-    int64,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    float16,
-    float32,
-    float64,
-    float_,
-)
-
-npnum = TypeVar(
-    "npnum",
-    int8,
-    int16,
-    int32,
-    int64,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    float16,
-    float32,
-    float64,
-    float_,
-)
 
 
 class Neuron(object):
@@ -86,9 +41,9 @@ class Neuron(object):
         return self._bias
 
     @b.setter
-    def b(self, value: Union[int, float, npnum]) -> None:
+    def b(self, value: Union[int, float]) -> None:
         """Setter for the bias property."""
-        self._bias = float(verify_type(value, (int, float, *nptypes)))
+        self._bias = float(verify_type(value, (int, float)))
 
     @property
     def inputs(self) -> List["Neuron"]:
@@ -106,11 +61,12 @@ class Neuron(object):
         return self._weights
 
     @w.setter
-    def w(self, value: Union[List[Union[int, float, npnum]], ndarray]) -> None:
+    def w(self, value: List[Union[int, float]]) -> None:
         """Setter for the weights property."""
-        self._weights = list( # Finally, assign the value
-            verify_components_type( # Thenn verify the components type
-               verify_type(value, (list, ndarray)), (int, float, *nptypes) # First verify the type
+        self._weights = list(  # Finally, assign the value
+            verify_components_type(  # Thenn verify the components type
+                verify_type(value, list),
+                (int, float),  # First verify the type
             )
         )
 
@@ -133,23 +89,26 @@ class Model(object):
 
     def __init__(self, learning_rate: float = 0.01, loss: str = "mse") -> None:
         """Initialize a Model object attrs."""
-        self._layers: list = []
-        self._hiddenlyrs: list = self._layers[1:-1]
-        self._output: list = self._layers[-1]
-        self._lr = verify_type(learning_rate, (int, float, *nptypes))
+        self._layers: List[List[Neuron]] = []
+        self._hiddenlyrs: List[List[Neuron]] = self._layers[1:-1]
+        self._output: List[Neuron] = self._layers[-1]
+        self._lr: float = float(verify_type(learning_rate, (int, float)))
 
         self._loss_map: dict = {
             "mse": mean_squared_error,
             "cross-entropy": categorical_cross_entropy,
             "binary-cross-entropy": binary_cross_entropy,
-            "huber": huber_loss, 
-            "kl-divergence": kl_divergence
+            "huber": huber_loss,
+            "kl-divergence": kl_divergence,
         }
 
         if loss not in self._loss_map.keys():
-            raise ValueError(f"Expected loss to be ({'/'.join([k for k in self._loss_map.keys()])})")
+            raise ValueError(
+                f"Expected loss to be ({'/'.join([k for k in self._loss_map.keys()])})"
+            )
 
         self._loss: Callable = self._loss_map[loss]
+
 
 class Perceptron(Neuron):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
@@ -176,7 +135,7 @@ class Perceptron(Neuron):
         self._lr: float = 0.1
         self._activation = self.step
 
-    def __call__(self, X: Union[list, ndarray]) -> int:
+    def __call__(self, X: List[Union[int, float]]) -> int:
         return self.predict(X)
 
     @property
@@ -185,37 +144,13 @@ class Perceptron(Neuron):
         return self._identifier
 
     @property
-    def X(self) -> Union[list, ndarray]:
-        """The X property."""
-        return self._X
-
-    @X.setter
-    def X(self, value) -> None:
-        self._X = verify_components_type(
-            verify_type(value, (list, ndarray)),
-            (int, float, *nptypes),
-        )
-
-    @property
-    def y(self) -> Union[list, ndarray]:
-        """The y property."""
-        return self._y
-
-    @y.setter
-    def y(self, value) -> None:
-        self._y = verify_components_type(
-            verify_type(value, (list, ndarray)),
-            (int, float, *nptypes),
-        )
-
-    @property
     def b(self) -> float:
         """The bias property."""
         return self._bias
 
     @b.setter
     def b(self, value) -> None:
-        self._bias = verify_type(value, (int, float, *nptypes))
+        self._bias = verify_type(value, (int, float))
 
     @property
     def w(self) -> List[float]:
@@ -224,7 +159,7 @@ class Perceptron(Neuron):
 
     @w.setter
     def w(self, value) -> None:
-        self._w = verify_type(value, (int, float, *nptypes))
+        self._w = verify_type(value, (int, float))
 
     @property
     def learning_rate(self) -> float:
@@ -233,17 +168,20 @@ class Perceptron(Neuron):
 
     @learning_rate.setter
     def learning_rate(self, value) -> None:
-        self._lr = float(verify_type(value, (int, float, *nptypes)))
+        self._lr = float(verify_type(value, (int, float)))
 
     @staticmethod
     def step(x) -> int:
-        verify_type(x, (int, float, *nptypes))
+        verify_type(x, (int, float))
 
         return 0 if x < 0 else 1
 
     def fit(
-        self, X: Union[list, ndarray], y: Union[list, ndarray], verbose=False
-    ) -> List[float]:
+        self,
+        X: List[Union[int, float]],
+        y: List[Union[int, float]],
+        verbose: Optional[bool] = False,
+    ) -> List[Union[int, float]]:
         """
         Trains the model following the Perceptron Learning Rule.
 
@@ -253,11 +191,11 @@ class Perceptron(Neuron):
 
         # Verify type of X and y, and verbose option
         X = verify_components_type(
-            verify_type(X, (list, ndarray)), (int, float, *nptypes)
+            verify_type(X, (list)), (int, float)
         )
 
         y = verify_components_type(
-            verify_type(y, (list, ndarray)), (int, float, *nptypes)
+            verify_type(y, list), (int, float)
         )
 
         verify_type(verbose, bool)
@@ -299,12 +237,10 @@ class Perceptron(Neuron):
 
         return history
 
-    def predict(self, X: Union[list, ndarray]) -> int:
+    def predict(self, X: List[Union[int, float]]) -> int:
         """Returns a prediction given X as inputs."""
         verify_len(X, self._n)  # The input must be the same shape as n.
-        verify_components_type(
-            X, (int, float, *nptypes)  # Input data must be numeric.
-        )
+        verify_components_type(X, (int, float))  # Input data must be numeric.
 
         return self._activation(
             sum(x * w for x, w in zip(X, self._weights)) + self._bias

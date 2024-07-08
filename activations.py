@@ -4,62 +4,13 @@
 Module representing a set of commonly used activation functions.
 """
 
-from typing import Optional, TypeVar, Union, List
+from typing import Optional, Union, List
 from classtools import Verifiers
-from math import e, log, exp
-from numpy import (
-    float16,
-    float32,
-    float64,
-    float_,
-    int16,
-    int32,
-    int64,
-    int8,
-    ndarray,
-    uint16,
-    uint32,
-    uint64,
-    uint8,
-)
+from math import log, exp
 
 verify_type = Verifiers.verify_type
 
-global nptypes
-
-nptypes = (
-    int8,
-    int16,
-    int32,
-    int64,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    float16,
-    float32,
-    float64,
-    float_,
-)
-
-npnum = TypeVar(
-    "npnum",
-    int8,
-    int16,
-    int32,
-    int64,
-    uint8,
-    uint16,
-    uint32,
-    uint64,
-    float16,
-    float32,
-    float64,
-    float_,
-)
-
-
-def step(x: Union[int, float, npnum], threshold: Union[int, float, npnum] = 0) -> int:
+def step(x: Union[int, float], threshold: Union[int, float] = 0) -> int:
     """
     Heaviside step function.
 
@@ -70,12 +21,12 @@ def step(x: Union[int, float, npnum], threshold: Union[int, float, npnum] = 0) -
     Returns:
         int: 1 if x >= threshold, else 0.
     """
-    x = verify_type(x, (int, float, *nptypes))
-    threshold = verify_type(threshold, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
+    threshold = verify_type(threshold, (int, float))
     return 1 if x >= threshold else 0
 
 
-def sigmoid(x: Union[int, float, npnum]) -> float:
+def sigmoid(x: Union[int, float]) -> float:
     """
     Sigmoid function.
 
@@ -85,11 +36,11 @@ def sigmoid(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Sigmoid of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
     return 1 / (1 + exp(-x))
 
 
-def relu(x: Union[int, float, npnum]) -> float:
+def relu(x: Union[int, float]) -> float:
     """
     Rectified Linear Unit function.
 
@@ -99,11 +50,11 @@ def relu(x: Union[int, float, npnum]) -> float:
     Returns:
         float: ReLU of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
     return max(0, x)
 
 
-def leaky_relu(x: Union[int, float, npnum]) -> float:
+def leaky_relu(x: Union[int, float]) -> float:
     """
     Leaky Rectified Linear Unit function.
 
@@ -113,11 +64,11 @@ def leaky_relu(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Leaky ReLU of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
     return x if x >= 0 else x / 10
 
 
-def tanh(x: Union[int, float, npnum]) -> float:
+def tanh(x: Union[int, float]) -> float:
     """
     Hyperbolic Tangent function.
 
@@ -127,11 +78,11 @@ def tanh(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Tanh of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
     return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
 
-def softmax(x: Union[List[float], ndarray], n: Optional[int] = None) -> List[float]:
+def softmax(x: Union[List[float]], n: Optional[int] = None) -> List[float]:
     """
     Softmax function.
 
@@ -142,7 +93,7 @@ def softmax(x: Union[List[float], ndarray], n: Optional[int] = None) -> List[flo
     Returns:
         List[float]: Softmax distribution.
     """
-    x = verify_type(x, (list, ndarray))
+    x = verify_type(x, list)
     e_x = [exp(i) for i in x]
     sum_e_x = sum(e_x)
     distr = [i / sum_e_x for i in e_x]
@@ -154,7 +105,7 @@ def softmax(x: Union[List[float], ndarray], n: Optional[int] = None) -> List[flo
     return distr
 
 
-def prelu(x: Union[int, float, npnum], lp: Union[int, float, npnum]) -> float:
+def prelu(x: Union[int, float], lp: Union[int, float]) -> float:
     """
     Parametric Rectified Linear Unit function.
 
@@ -165,12 +116,12 @@ def prelu(x: Union[int, float, npnum], lp: Union[int, float, npnum]) -> float:
     Returns:
         float: PReLU of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
-    lp = verify_type(lp, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
+    lp = verify_type(lp, (int, float))
     return max(lp * x, x)
 
 
-def elu(x: Union[int, float, npnum], alpha: Union[int, float, npnum]) -> float:
+def elu(x: Union[int, float], alpha: Union[int, float]) -> float:
     """
     Exponential Linear Unit function.
 
@@ -181,12 +132,12 @@ def elu(x: Union[int, float, npnum], alpha: Union[int, float, npnum]) -> float:
     Returns:
         float: ELU of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
-    alpha = verify_type(alpha, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
+    alpha = verify_type(alpha, (int, float))
     return x if x > 0 else alpha * (exp(x) - 1)
 
 
-def softplus(x: Union[int, float, npnum]) -> float:
+def softplus(x: Union[int, float]) -> float:
     """
     Softplus function.
 
@@ -196,5 +147,5 @@ def softplus(x: Union[int, float, npnum]) -> float:
     Returns:
         float: Softplus of x.
     """
-    x = verify_type(x, (int, float, *nptypes))
+    x = verify_type(x, (int, float))
     return log(1 + exp(x))
