@@ -149,3 +149,16 @@ def softplus(x: Union[int, float]) -> float:
     """
     x = verify_type(x, (int, float))
     return log(1 + exp(x))
+
+activation_map: dict = {
+    "step": step, 
+    "sigmoid": sigmoid,
+    "relu": relu, 
+    "leaky_relu": leaky_relu, 
+    "tanh": tanh, 
+    "softmax": softmax, 
+    "prelu": prelu, 
+    "elu": elu, 
+    "softplus": softplus
+}
+
