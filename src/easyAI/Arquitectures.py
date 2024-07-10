@@ -1,5 +1,5 @@
 from random import random
-from typing import Callable, Optional, Union, List
+from typing import Callable, Optional, Union, List, Tuple
 from easyAI.clsstools.Verifiers import verify_type, verify_components_type, verify_len
 from easyAI.core.objects import Neuron, Model, Layer
 from easyAI.core.activations import activation_map
@@ -15,50 +15,20 @@ class Perceptron(Model):
         Args:
             - entries (int): The number of inputs of the model.
         """
-        super().__init__([Layer(1, activation="step", name="SimplePerceptron")])
-
         # Compatibility with int expressed in float
         if isinstance(entries, float):
             if int(entries) == entries:
                 entries = int(entries)
 
-        self._n: int = verify_type(entries, int) # Number of entries
-        self._lr: float = 0.1
+        self._n: int = verify_type(entries, int)  # Number of entries
+
+        super().__init__(
+            Layer(self._n, activation="step", name="X Nodes"),
+            Layer(1, activation="step", name="SimplePerceptron"),
+        )
 
     def __call__(self, X: List[Union[int, float]]) -> float:
-        return self.predict(X)
-
-    @property
-    def id(self) -> int:
-        """The id property."""
-        return self._identifier
-
-    @property
-    def b(self) -> float:
-        """The bias property."""
-        return self._bias
-
-    @b.setter
-    def b(self, value) -> None:
-        self._bias = verify_type(value, (int, float))
-
-    @property
-    def w(self) -> List[float]:
-        """The w property."""
-        return self._weights
-
-    @w.setter
-    def w(self, value) -> None:
-        self._w = float(verify_type(value, (int, float)))
-
-    @property
-    def learning_rate(self) -> float:
-        """The learning_rate property."""
-        return self._lr
-
-    @learning_rate.setter
-    def learning_rate(self, value) -> None:
-        self._lr = float(verify_type(value, (int, float)))
+        return self.forward(X)
 
     def fit(
         self,
@@ -99,9 +69,9 @@ class Perceptron(Model):
 
             # Updating parameters
             if z != ey:
-                for i in range(len(self._weights)):
-                    self._weights[i] += self._lr * (ey - z) * eX[i]
-                self._bias += self._lr * (ey - z)
+                for i in range(len(self.input_layer)):
+                    self.output[i] += self._lr * (ey - z) * eX[i]
+                self.output[0]._bias += self._lr * (ey - z)
 
             # Calculate loss MSE for the current epoch
             epoch_loss = sum(
@@ -116,17 +86,6 @@ class Perceptron(Model):
                 )
 
         return history
-
-    def predict(self, X: List[Union[int, float]]) -> float:
-        """Returns a prediction given X as inputs."""
-        verify_len(X, self._n)  # The input must be the same shape as n.
-        verify_components_type(X, (int, float))  # Input data must be numeric.
-
-        return self.activation(
-            sum([x * w for x, w in zip(X, self._weights)]) + self._bias
-        )
-
-
 
 class MLP(Model):
 
