@@ -5,7 +5,7 @@ from easyAI.core.objects import Neuron, Model, Layer
 from easyAI.core.activations import activation_map
 
 
-class Perceptron(Neuron):
+class Perceptron(Model):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
     def __init__(self, entries: int) -> None:
@@ -15,22 +15,15 @@ class Perceptron(Neuron):
         Args:
             - entries (int): The number of inputs of the model.
         """
-        super().__init__()
+        super().__init__([Layer(1, activation="step", name="SimplePerceptron")])
 
         # Compatibility with int expressed in float
         if isinstance(entries, float):
             if int(entries) == entries:
                 entries = int(entries)
 
-        del self._inputnodes
-        del self._inputs
-        del self._z
-
-        # Model params
         self._n: int = verify_type(entries, int) # Number of entries
         self._lr: float = 0.1
-        self._weights: List[float] = [random() for _ in range(self._n)]
-        self._activation: Callable = activation_map["step"]
 
     def __call__(self, X: List[Union[int, float]]) -> float:
         return self.predict(X)

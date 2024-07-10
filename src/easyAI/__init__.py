@@ -32,7 +32,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Importación de submódulos
 from .Arquitectures import Perceptron, MLP
-from .classtools import Verifiers
 
 # Importación de subpaquetes
 from .core import objects
