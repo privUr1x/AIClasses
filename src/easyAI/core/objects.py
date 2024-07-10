@@ -1,8 +1,8 @@
 from random import random, randint
-from activations import activation_map
+from easyAI.core.activations import activation_map
 from typing import Union, List, Callable
-from ..clsstools.Verifiers import verify_type, verify_components_type
-from loss_func import loss_map
+from easyAI.clsstools.Verifiers import verify_type, verify_components_type
+from easyAI.core.loss_func import loss_map
 
 class History:
     """Class representing a loss history for training process."""

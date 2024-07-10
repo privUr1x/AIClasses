@@ -1,16 +1,10 @@
-#!/usr/bin/python3
-from random import randint
-from sys import path
-from os.path import join, abspath, dirname
-
-path.insert(0, abspath(join(dirname(__file__), '../')))
-
 from easyAI.Arquitectures import Perceptron
+from random import randint
 
 ENTRIES: int = 2
 
 # Building logical gates (OR, AND, NOT)
-X: list = [randint(0,1) for _ in range(200)]
+X: list = [randint(0, 1) for _ in range(200)]
 
 # AND gate
 and_y: list = [int(bool(X[i]) and bool(X[i + 1])) for i in range(0, len(X) - 1, 2)]
@@ -43,7 +37,9 @@ print("OR weights", or_g._weights)
 print("OR bias", or_g._bias)
 
 # NAND gate
-nand_y: list = [int(not (bool(X[i]) and bool(X[i + 1]))) for i in range(0, len(X) - 1, 2)]
+nand_y: list = [
+    int(not (bool(X[i]) and bool(X[i + 1]))) for i in range(0, len(X) - 1, 2)
+]
 
 nand_g = Perceptron(ENTRIES)
 
@@ -63,7 +59,7 @@ print("XOR bias", xor_g._bias)
 # NOT gate
 ENTRIES: int = 1
 
-X: list = X[:int(len(X)/2)]
+X: list = X[: int(len(X) / 2)]
 not_y: list = [int(not bool(X[i])) for i in range(len(X))]
 
 not_g = Perceptron(ENTRIES)

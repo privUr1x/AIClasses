@@ -1,8 +1,8 @@
 from random import random
-from typing import Optional, Union, List
-from clsstools.Verifiers import verify_type, verify_components_type, verify_len
-from core.objects import Neuron, Model, Layer
-from core.activations import activation_map
+from typing import Callable, Optional, Union, List
+from easyAI.clsstools.Verifiers import verify_type, verify_components_type, verify_len
+from easyAI.core.objects import Neuron, Model, Layer
+from easyAI.core.activations import activation_map
 
 
 class Perceptron(Neuron):
@@ -17,18 +17,20 @@ class Perceptron(Neuron):
         """
         super().__init__()
 
+        # Compatibility with int expressed in float
         if isinstance(entries, float):
             if int(entries) == entries:
                 entries = int(entries)
 
         del self._inputnodes
+        del self._inputs
+        del self._z
 
         # Model params
-        self._n = verify_type(entries, int)  # Model arquitecture
-        self._bias: float = random()
-        self._weights: List[float] = [random() for _ in range(self._n)]
+        self._n: int = verify_type(entries, int) # Number of entries
         self._lr: float = 0.1
-        self._activation = activation_map["step"]
+        self._weights: List[float] = [random() for _ in range(self._n)]
+        self._activation: Callable = activation_map["step"]
 
     def __call__(self, X: List[Union[int, float]]) -> float:
         return self.predict(X)
@@ -54,7 +56,7 @@ class Perceptron(Neuron):
 
     @w.setter
     def w(self, value) -> None:
-        self._w = verify_type(value, (int, float))
+        self._w = float(verify_type(value, (int, float)))
 
     @property
     def learning_rate(self) -> float:
@@ -127,7 +129,10 @@ class Perceptron(Neuron):
         verify_len(X, self._n)  # The input must be the same shape as n.
         verify_components_type(X, (int, float))  # Input data must be numeric.
 
-        return self._z
+        return self.activation(
+            sum([x * w for x, w in zip(X, self._weights)]) + self._bias
+        )
+
 
 
 class MLP(Model):

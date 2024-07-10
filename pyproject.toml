@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.poetry]
+name = "deep_learning_tools"
+version = "0.1.0"
+description = "A collection of tools for deep learning using Python"
+authors = ["Your Name <your_email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+typing = "^3.7.4.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+
