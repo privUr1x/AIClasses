@@ -6,12 +6,8 @@ Module representing a set of commonly used loss functions.
 """
 
 from typing import Optional, Union
-from classtools import Verifiers
+from ..clsstools.Verifiers import verify_type, verify_components_type
 from math import log
-
-verify_type = Verifiers.verify_type
-verify_components_type = Verifiers.verify_components_type
-
 
 def mean_squared_error(y_true: Union[int, float], y_pred: Union[int, float]) -> float:
     """

@@ -1,13 +1,8 @@
 from random import random
 from typing import Optional, Union, List
-from classtools import Verifiers
-from core.objects import Neuron, Model
-from activations import activation_map
-
-verify_type = Verifiers.verify_type
-verify_len = Verifiers.verify_len
-verify_iterable = Verifiers.verify_iterable
-verify_components_type = Verifiers.verify_components_type
+from clsstools.Verifiers import verify_type, verify_components_type, verify_len
+from core.objects import Neuron, Model, Layer
+from core.activations import activation_map
 
 
 class Perceptron(Neuron):
@@ -137,5 +132,5 @@ class Perceptron(Neuron):
 
 class MLP(Model):
 
-    def __init__(self, learning_rate: float = 0.01, loss: str = "mse") -> None:
-        super().__init__(learning_rate, loss)
+    def __init__(self, structure: List[Layer]) -> None:
+        super().__init__(structure)

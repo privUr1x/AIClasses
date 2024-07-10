@@ -1,6 +1,11 @@
 #!/usr/bin/python3
-from Arquitectures import Perceptron
 from random import randint
+from sys import path
+from os.path import join, abspath, dirname
+
+path.insert(0, abspath(join(dirname(__file__), '../')))
+
+from easyAI.Arquitectures import Perceptron
 
 ENTRIES: int = 2
 

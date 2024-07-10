@@ -1,11 +1,8 @@
 from random import random, randint
 from activations import activation_map
 from typing import Union, List, Callable
-from classtools import Verifiers 
+from ..clsstools.Verifiers import verify_type, verify_components_type
 from loss_func import loss_map
-
-verify_type = Verifiers.verify_type
-verify_components_type = Verifiers.verify_components_type
 
 class History:
     """Class representing a loss history for training process."""
@@ -158,3 +155,6 @@ class Model(object):
         Trains the model given X and y data.
         """
         pass
+
+if __name__ == "__main__":
+    print(activation_map)

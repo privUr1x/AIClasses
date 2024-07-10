@@ -5,10 +5,8 @@ Module representing a set of commonly used activation functions.
 """
 
 from typing import Optional, Union, List
-from classtools import Verifiers
+from ..clsstools.Verifiers import verify_type
 from math import log, exp
-
-verify_type = Verifiers.verify_type
 
 def step(x: Union[int, float], threshold: Union[int, float] = 0) -> int:
     """
@@ -82,7 +80,7 @@ def tanh(x: Union[int, float]) -> float:
     return (exp(x) - exp(-x)) / (exp(x) + exp(-x))
 
 
-def softmax(x: Union[List[float]], n: Optional[int] = None) -> List[float]:
+def softmax(x: List[float], n: Optional[int] = None) -> List[float]:
     """
     Softmax function.
 
