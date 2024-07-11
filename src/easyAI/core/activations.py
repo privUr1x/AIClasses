@@ -4,7 +4,7 @@
 Module representing a set of commonly used activation functions.
 """
 
-from typing import Optional, Union, List
+from typing import Any, Optional, Union, List
 from easyAI.clsstools.Verifiers import verify_type
 from math import log, exp
 
@@ -148,6 +148,10 @@ def softplus(x: Union[int, float]) -> float:
     x = verify_type(x, (int, float))
     return log(1 + exp(x))
 
+def none(x: Union[int, float]) -> float: 
+    verify_type(x, (int, float))
+    return float(x)
+
 activation_map: dict = {
     "step": step, 
     "sigmoid": sigmoid,
@@ -157,6 +161,7 @@ activation_map: dict = {
     "softmax": softmax, 
     "prelu": prelu, 
     "elu": elu, 
-    "softplus": softplus
+    "softplus": softplus,
+    "none": none
 }
 

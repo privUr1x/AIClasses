@@ -1,14 +1,14 @@
-from random import random
-from typing import Callable, Optional, Union, List, Tuple
+from typing import Optional, Union, List
 from easyAI.clsstools.Verifiers import verify_type, verify_components_type, verify_len
-from easyAI.core.objects import Neuron, Model, Layer
+from easyAI.core.objects import History, Model, Layer
 from easyAI.core.activations import activation_map
+from easyAI.core.loss_func import loss_map
 
 
 class Perceptron(Model):
     "Class representing a Perceptron (Unitary Layer Neural DL Model)"
 
-    def __init__(self, entries: int) -> None:
+    def __init__(self, entries: int, activation: str = "step") -> None:
         """
         Builds an instance give X training data, y training data and entries.
 
@@ -20,27 +20,27 @@ class Perceptron(Model):
             if int(entries) == entries:
                 entries = int(entries)
 
-        self._n: int = verify_type(entries, int)  # Number of entries
+        self._n = verify_type(entries, int)
 
         super().__init__(
-            Layer(self._n, activation="step", name="X Nodes"),
-            Layer(1, activation="step", name="SimplePerceptron"),
+            Layer(self._n, name="X Nodes"),
+            Layer(1, activation=activation, name="SimplePerceptron"),
         )
 
     def __call__(self, X: List[Union[int, float]]) -> float:
-        return self.forward(X)
+        return self.forward(X)[0]
 
     def fit(
         self,
         X: List[Union[int, float]],
         y: List[Union[int, float]],
         verbose: Optional[bool] = False,
-    ) -> List[Union[int, float]]:
+    ) -> History:
         """
         Trains the model following the Perceptron Learning Rule.
 
         Returns:
-            - list: The history loss.
+            - History: The history loss.
         """
 
         # Verify type of X and y, and verbose option
@@ -55,7 +55,7 @@ class Perceptron(Model):
             print("[!] Warning, X size and y size doesn't correspond.")
 
         if len(X) < self._n:
-            return []
+            return History()
 
         # Training
         history: list = []
@@ -69,15 +69,17 @@ class Perceptron(Model):
 
             # Updating parameters
             if z != ey:
-                for i in range(len(self.input_layer)):
-                    self.output[i] += self._lr * (ey - z) * eX[i]
-                self.output[0]._bias += self._lr * (ey - z)
+                for n in self.output:
+                    for i, w in enumerate(n._weights):
+                        w += self._lr * (ey - z) * eX[i]
+                    n._bias += self._lr * (ey - z)
 
             # Calculate loss MSE for the current epoch
             epoch_loss = sum(
                 (y[i] - self.__call__(X[i * self._n : (i + 1) * self._n])) ** 2
                 for i in range(len(y))
             ) / len(y)
+
             history.append(epoch_loss)
 
             if verbose:
@@ -85,9 +87,34 @@ class Perceptron(Model):
                     f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}\n\tLoss: {epoch_loss}"
                 )
 
-        return history
+        print(history)
+
+        return History()
+
 
 class MLP(Model):
 
     def __init__(self, structure: List[Layer]) -> None:
         super().__init__(structure)
+
+    def fit(self, X, y):
+        raise NotImplemented
+
+        for epoch in range(len(y)):
+            # Narrowing down y for X
+            eX = X[epoch * self._n : (epoch + 1) * self._n]
+            ey = y[epoch]
+
+            z = self.__call__(eX)
+
+            # Updating parameters
+            if z != ey:
+                for i in range(1, self._depth, -1):  # Iterating througth hidden layers
+                    for j in range(
+                        self._layers[i]._n
+                    ):  # Iterating througth Neuron in layer
+                        print("Index:", i, j)
+                        for w in range(self._n):  # Iterating througth weights in Neuron
+                            self._layers[i][j]._weights[w] += (self._lr * (ey - z) * eX[j])  # w <- w + lr * (ey - z) * x
+
+                        self._layers[i][j]._bias += self._lr * (ey - z)  # b <- b + lr * (ey - z)

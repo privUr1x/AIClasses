@@ -1,6 +1,17 @@
 from random import random, randint
 from easyAI.core.activations import activation_map
-from typing import Iterator, Optional, Sized, Union, List, Callable, Tuple
+from typing import (
+    Iterator,
+    Optional,
+    Sequence,
+    Sized,
+    Union,
+    List,
+    Callable,
+    Tuple,
+    TypeVar,
+    Generic,
+)
 from easyAI.clsstools.Verifiers import verify_type, verify_components_type
 from easyAI.core.loss_func import loss_map
 
@@ -22,6 +33,12 @@ class Neuron(object):
         self._n: int = len(self._inputnodes)
         self._inputs: List[float] = [self._inputnodes[xi]._z for xi in range(self._n)]
         self._weights: List[float] = [random() for _ in range(self._n)]
+
+        if activation not in activation_map:
+            raise ValueError(
+                f"Exepcted activatoin to be ({'/'.join([k for k in activation_map.keys()])})"
+            )
+
         self._activation: Callable = activation_map[activation]
 
         self._z: float = self._activation(
@@ -112,7 +129,10 @@ class Node(object):
         return f"Node(): {self._id} at {id(self)}"
 
 
-class Layer(object):
+T = TypeVar("T", Node, Neuron)
+
+
+class Layer(Generic[T]):
     """Class representing a layer of Neurons"""
 
     def __init__(self, n: int, activation="relu", name="layer") -> None:
@@ -120,11 +140,6 @@ class Layer(object):
 
         if n < 1:
             raise ValueError("Expected at least 1 Neuron for a Layer()")
-
-        if activation not in activation_map:
-            raise ValueError(
-                f"Exepcted activatoin to be ({'/'.join([k for k in activation_map.keys()])})"
-            )
 
         self._structure: List[Union[Node, Neuron]] = [
             Neuron(activation) for _ in range(n)
@@ -168,18 +183,40 @@ class Layer(object):
                 return self._structure[-(indx + 1)]
             raise IndexError(f"Index out of range: {indx}")
 
+    def __setitem__(self, indx: int, val: Union[Node, Neuron]) -> None:
+        verify_type(indx, int)
+        verify_type(val, (Node, Neuron))
+
+        if indx != 0 and isinstance(val, Node):
+            raise TypeError("Node class only permited in the first layer.")
+
+        if not (0 < self._n <= indx):
+            raise IndexError("Index out of range.")
+        
+        self._structure[indx] = val
+
+    def add_neuron(self):
+        pass
+
+    def remove_neuron(self, indx: int):
+        pass
+
 
 class Model(object):
     """Class representing an abstract class for arquitectures."""
 
-    def __init__(self, *structure: Tuple[Layer]) -> None:
+    def __init__(self, *structure: Union[Layer, Sequence[Layer]], loss: str = "mse", learning_rate: Union[int, float] = 0.01) -> None:
         """Initialize a Model object attrs."""
         self._layers: List[Layer] = verify_components_type(
             verify_type(structure, tuple), Layer
         )
-        self._lr: float = 0.01
+        self._lr: float = float(verify_type(learning_rate, (int, float)))
         self._n: int = len(self.input_layer)
-        self._loss: Callable = loss_map["mse"]
+
+        if not loss in loss_map:
+            raise ValueError(f"Expected loss to be in between ({'/'.join([k for k in loss_map.keys()])})")
+
+        self._loss: Callable = loss_map[loss]
         self._depth: int = len(self._layers)
 
         # Inner set up
@@ -187,22 +224,22 @@ class Model(object):
         self.__set_connections()
 
     @property
-    def layers(self) -> List[Layer]:
+    def layers(self) -> List[Layer[Union[Node, Neuron]]]:
         """The layers property."""
         return self._layers
 
     @property
-    def input_layer(self) -> Layer:
+    def input_layer(self) -> Layer[Node]:
         """The input_layer property."""
         return self._layers[0]
 
     @property
-    def hidden_layers(self) -> List[Layer]:
+    def hidden_layers(self) -> List[Layer[Neuron]]:
         """The hiden_layers property."""
         return self._layers[1:-1]
 
     @property
-    def output(self) -> Layer:
+    def output(self) -> Layer[Neuron]:
         """The output property."""
         return self._layers[-1]
 
@@ -277,62 +314,12 @@ class Model(object):
         # Forward propagate through each layer
         for i in range(1, self._depth):
             for n in self._layers[i]:
-                n._z = n.activation(
+                n._z = n._activation(
                     sum([x._z * w for x, w in zip(n._inputs, n._weights)]) + n._bias
                 )
 
         # Return the output of the output layer
         return [neuron._z for neuron in self.output]
-
-    def fit(
-        self,
-        X: List[Union[int, float]],
-        y: List[Union[int, float]],
-        verbose: bool = False,
-    ) -> Optional[History]:
-        """
-        Trains the model given X and y data.
-        """
-        raise NotImplemented
-        verify_components_type(verify_type(X, list), (int, float))
-        verify_components_type(verify_type(y, list), (int, float))
-        verify_type(verbose, bool)
-
-        # Verifing data sizes compatibility
-        if len(X) % len(self.input_layer) != 0:
-            print("[!] Warning, X size and y size doesn't correspond.")
-
-        if len(X) < len(self.input_layer):
-            return History()
-
-        history = History()
-
-        for epoch in range(len(y)):
-            # Narrowing down y for X
-            eX = X[epoch * self._n : (epoch + 1) * self._n]
-            ey = y[epoch]
-
-            z = self.forward(eX)
-
-            # Updating parameters
-            if z != ey:
-                for i in range(len(self._weights)):
-                    self._weights[i] += self._lr * (ey - z) * eX[i]
-                self._bias += self._lr * (ey - z)
-
-            # Calculate loss MSE for the current epoch
-            epoch_loss = sum(
-                (y[i] - self.__call__(X[i * self._n : (i + 1) * self._n])) ** 2
-                for i in range(len(y))
-            ) / len(y)
-            history.append(epoch_loss)
-
-            if verbose:
-                print(
-                    f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}\n\tLoss: {epoch_loss}"
-                )
-
-        return history
 
 
 if __name__ == "__main__":
