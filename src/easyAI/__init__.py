@@ -31,7 +31,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Importación de submódulos
-from .Arquitectures import Perceptron, MLP
+from .Arquitectures import Perceptron
 
 # Importación de subpaquetes
 from .core import objects
@@ -39,4 +39,4 @@ from .core import activations
 from .core import loss_func
 
 # Definir el API del paquete mediante __all__
-__all__ = ["MLP", "Perceptron", "activations", "loss_func"]
+__all__ = ["Perceptron", "activations", "loss_func"]
