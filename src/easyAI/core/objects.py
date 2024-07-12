@@ -108,11 +108,11 @@ class Node(object):
     @property
     def value(self) -> float:
         """The value property."""
-        return self._value
+        return self._z
 
     @value.setter
     def value(self, value) -> None:
-        self._value = value
+        self._z = value
 
     def __str__(self) -> str:
         return f"Node(): {self._id}"
@@ -168,7 +168,7 @@ class Layer(Generic[T]):
         verify_type(indx, int)
 
         if indx >= 0:
-            if indx <= self._n:
+            if indx < self._n:
                 return self._structure[indx]
             raise IndexError(f"Index out of range: {indx}")
         else:
@@ -183,7 +183,7 @@ class Layer(Generic[T]):
         if indx != 0 and isinstance(val, Node):
             raise TypeError("Node class only permited in the first layer.")
 
-        if not (0 < self._n <= indx):
+        if not (0 <= self._n < indx):
             raise IndexError("Index out of range.")
 
         self._structure[indx] = val
@@ -283,15 +283,15 @@ class Model(object):
 
     def __set_inpt_layer(self) -> None:
         """Sets the first layer as class Node."""
-        self.input_layer._structure = [Node() for _ in range(self._inputs)]
+        self.input_layer._structure = [Node() for _ in range(self._inputs)] if self._depth != 1 else self.input_layer._structure
 
     def __set_connections(self) -> None:
         """Sets the connections between Neurons."""
         for i in range(1, self._depth):  # [l1, l2, ..., ln]
             for n in self._layers[i]:
                 # Give value to neuron attrs.
-                n._inputnodes = [n for n in self._layers[i - 1]]
-                n._inputs = [n._z for n in self._layers[i - 1]]
+                n._inputnodes = [node for node in self._layers[i - 1]]
+                n._inputs = [node._z for node in self._layers[i - 1]]
                 n._weights = [random() for _ in range(len(n._inputnodes))]
                 n._n = len(n._inputnodes)
                 n._z = n._activation(
@@ -311,7 +311,7 @@ class Model(object):
         verify_components_type(verify_type(inputs, list), (int, float))
 
         # Ensure the input size matches the size of the input layer
-        if len(inputs) != len(self.input_layer):
+        if len(inputs) != self._inputs:
             raise ValueError("Input size does not match the input layer size.")
 
         # Set the values of the input layer nodes to the input data
@@ -321,6 +321,7 @@ class Model(object):
         # Forward propagate through each layer
         for i in range(1, self._depth):  # [l1, l2, ..., ln]
             for n in self._layers[i]:  # [n1, n2, ..., nn]
+                n._inputs = [node._z for node in self._layers[i - 1]]
                 n._z = n._activation(
                     sum([x * w for x, w in zip(n._inputs, n._weights)]) + n._bias
                 )

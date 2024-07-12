@@ -75,8 +75,9 @@ class Perceptron(Model):
 
             # Updating parameters
             if z != ey:
-                for n in self.output:
-                    for i in range(len(n._weights)):
+                for n in self.output:  # [n0, n1, ..., nn]
+                    for i in range(n._n):  # [w-1, w1, ..., wn]
+                        print(f"Updating weight {i}")
                         n._weights[i] += self._lr * (ey - z) * eX[i]
                     n._bias += self._lr * (ey - z)
 

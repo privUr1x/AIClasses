@@ -13,3 +13,4 @@ m = Model([
 
 print(m._layers)
 print(m.input_layer)
+print(m.output)
