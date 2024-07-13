@@ -248,7 +248,7 @@ class Layer(Generic[T]):
         self._structure[indx] = val
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash(str(self._structure) + str(self._activation))
 
     def __set_indexes(self) -> None:
         """Set the indexes for the neurons or nodes within the layer."""
@@ -417,6 +417,9 @@ class Model:
 
     def __ne__(self, value: object, /) -> bool:
         return not self.__eq__(value)
+
+    def __hash__(self) -> int:
+        return hash(tuple([l.__hash__() for l in self._layers]))
 
     def forward(self, inputs: List[Union[int, float]]) -> List[float]:
         """
