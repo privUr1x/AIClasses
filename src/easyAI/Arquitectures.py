@@ -1,12 +1,12 @@
 from typing import Optional, Union, List
 from easyAI.clsstools.Verifiers import verify_type, verify_components_type, verify_len
-from easyAI.core.objects import History, Model, Layer
+from easyAI.core.objects import History, Model, Dense
 from easyAI.core.activations import activation_map
 from easyAI.core.loss_func import loss_map
 
 
 class Perceptron(Model):
-    "Class representing a Perceptron (Unitary Layer Neural DL Model)"
+    "Class representing a Perceptron (Unitary Layer FeedForward Fully Conected Model)"
 
     def __init__(
         self,
@@ -29,14 +29,14 @@ class Perceptron(Model):
 
         super().__init__(
             [
-                Layer(self._n, name="Input Nodes"),
-                Layer(1, activation=activation, name="SimplePerceptron"),
+                Dense(self._n, name="Input Nodes"),
+                Dense(1, activation=activation, name="SimplePerceptron"),
             ],
             learning_rate=learning_rate,
         )
 
         del self._optimizer
-        del self._loss
+        del self.loss
 
     def __call__(self, X: List[Union[int, float]]) -> list:
         return self.forward(X)

@@ -27,7 +27,7 @@ class History:
         self.history["val_accuracy"].append(val_accuracy)
 
 
-class Neuron:
+class Neuron(object):
     """Class representing an artificial neuron."""
 
     def __init__(self, activation: str = "relu") -> None:
@@ -130,7 +130,7 @@ class Neuron:
         return f"Neuron(): {self._id}"
 
 
-class Node:
+class Node(object):
     """Class representing an input node."""
 
     def __init__(self, value: Union[int, float] = 0, indx: int = None) -> None:
@@ -182,6 +182,7 @@ class Layer(Generic[T]):
         """
         self._n: int = verify_type(n, int)
         self._name: str = verify_type(name, str)
+        self._activation: str = activation
 
         if n < 1:
             raise ValueError("Expected at least 1 Neuron or Node for a Layer")
@@ -246,6 +247,9 @@ class Layer(Generic[T]):
 
         self._structure[indx] = val
 
+    def __hash__(self) -> int:
+        return super().__hash__()
+
     def __set_indexes(self) -> None:
         """Set the indexes for the neurons or nodes within the layer."""
         for i, n in enumerate(self._structure):
@@ -253,11 +257,31 @@ class Layer(Generic[T]):
 
     def add_neuron(self) -> None:
         """Add a neuron to the layer."""
-        pass
+        self._structure.__add__(Neuron(self._activation))
 
     def remove_neuron(self, indx: int) -> None:
         """Remove a neuron from the layer."""
-        pass
+        self._structure.remove(indx)
+
+class Dense(Layer):
+    """Class representing a fully connected layer."""
+
+    def __init__(self, n: int, activation="relu", name="layer") -> None:
+        super().__init__(n, activation, name)
+    
+class Conv(Layer):
+    """Class representing a convolutional network layer."""
+
+    def __init__(self, n: int, activation="relu", name="layer") -> None:
+        raise NotImplemented
+        super().__init__(n, activation, name)
+
+class Rec(Layer):
+    """Class representing a recurrent network layer."""
+
+    def __init__(self, n: int, activation="relu", name="layer") -> None:
+        raise NotImplemented
+        super().__init__(n, activation, name)
 
 
 class Model:
@@ -335,6 +359,10 @@ class Model:
                 f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
             )
         self._loss = loss_map[value]
+
+    @loss.deleter 
+    def loss(self) -> None: 
+        del self._loss
 
     @property
     def depth(self) -> int:
