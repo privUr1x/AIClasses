@@ -1,123 +1,166 @@
-from random import random, randint
+from random import random, randint, seed
+from typing import Any, Iterator, Type, Union, List, Callable, TypeVar, Generic, Tuple
 from easyAI.core.activations import activation_map
-from typing import (
-    Iterator,
-    Union,
-    List,
-    Callable,
-    TypeVar,
-    Generic,
-)
-from easyAI.clsstools.Verifiers import verify_type, verify_components_type
+from easyAI.clsstools.Verifiers import verify_len, verify_type, verify_components_type
+from easyAI.clsstools.Utils import search_instnce_name
 from easyAI.core.loss_func import loss_map
+from functools import singledispatchmethod
+
+RANDOM_SEED: int = 45
+
+seed(RANDOM_SEED)
 
 
 class History:
-    """Class representing a loss history for training process."""
+    """Class representing a history object for tracking training progress."""
 
-    pass
+    def __init__(self):
+        self.history = {"loss": [], "accuracy": [], "val_loss": [], "val_accuracy": []}
+
+    def update(
+        self, loss: float, accuracy: float, val_loss: float, val_accuracy: float
+    ):
+        self.history["loss"].append(loss)
+        self.history["accuracy"].append(accuracy)
+        self.history["val_loss"].append(val_loss)
+        self.history["val_accuracy"].append(val_accuracy)
 
 
-class Neuron(object):
+class Neuron:
     """Class representing an artificial neuron."""
 
     def __init__(self, activation: str = "relu") -> None:
-        """Initialize a Neuron object."""
+        """
+        Initialize a Neuron object.
+
+        Args:
+            activation (str): The activation function for the neuron.
+        """
         self._id: int = randint(10_000, 99_999)
-        self._bias: float = random()
 
         if activation not in activation_map:
             raise ValueError(
-                f"Exepcted activatoin to be ({'/'.join([k for k in activation_map.keys()])})"
+                f"Expected activation to be one of ({'/'.join([k for k in activation_map.keys()])})"
             )
         self._activation: Callable = activation_map[activation]
 
-        # Assigned in __set_connections
-        self._inputnodes: List[Union[Node, Neuron]]
-        self._n: int
-        self._inputs: List[float]
-        self._weights: List[float]
-        self._z: float
-        self._lyr_i: int  # Layer index of the neuron
-        self._ne_i: int  # Index of the neuron within its layer
+        self._inputnodes: List[Union[Node, Neuron]] = []
+        self._bias: float = random()
+        self._weights: List[float] = []
+
+        self._lyr_i: int
+        self._ne_i: int
+
+    @property
+    def z(self):
+        """Calculate and return the output value of the neuron."""
+        return self._activation(
+            sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
+        )
+
+    @property
+    def n(self) -> int:
+        """Return the number of input nodes connected to the neuron."""
+        return len(self.inputnodes)
+
+    @n.setter
+    def n(self, value: int) -> None:
+        """Set the number of input nodes connected to the neuron."""
+        self._n = verify_type(value, int)
 
     @property
     def b(self) -> float:
-        """Getter for the bias property."""
+        """Return the bias of the neuron."""
         return self._bias
 
     @b.setter
     def b(self, value: Union[int, float]) -> None:
-        """Setter for the bias property."""
+        """Set the bias of the neuron."""
         self._bias = float(verify_type(value, (int, float)))
 
     @property
-    def inputs(self) -> List[Union["Node", "Neuron"]]:
-        """Getter for the inputs property."""
+    def inputs(self) -> List[float]:
+        """Return the values of the input nodes connected to the neuron."""
+        return [node.z for node in self.inputnodes]
+
+    @property
+    def inputnodes(self) -> List[Union["Node", "Neuron"]]:
+        """Return the input nodes connected to the neuron."""
         return self._inputnodes
 
-    @inputs.setter
-    def inputs(self, value: List["Neuron"]) -> None:
-        """Setter for the inputs property."""
-        self._inputnodes = verify_components_type(verify_type(value, list), Neuron)
+    @inputnodes.setter
+    def inputnodes(self, value: List[Union["Node", "Neuron"]]) -> None:
+        """Set the input nodes connected to the neuron."""
+        self._inputnodes = verify_components_type(
+            verify_type(value, list), (Node, Neuron)
+        )
+
+        # Update weights
+        self._weights = [random() for _ in self._inputnodes]
 
     @property
     def w(self) -> List[float]:
-        """Getter for the weights property."""
+        """Return the weights of the input connections to the neuron."""
         return self._weights
 
     @w.setter
     def w(self, value: List[Union[int, float]]) -> None:
-        """Setter for the weights property."""
-        self._weights = list(  # Finally, assign the value
-            verify_components_type(  # Thenn verify the components type
-                verify_type(value, list),
-                (int, float),  # First verify the type
-            )
-        )
+        """Set the weights of the input connections to the neuron."""
+        self._weights = verify_components_type(verify_type(value, list), (int, float))
 
     @property
     def activation(self) -> Callable:
-        """Getter for the activation function property."""
+        """Return the activation function of the neuron."""
         return self._activation
 
     @activation.setter
     def activation(self, value: Callable) -> None:
-        """Setter for the activation function property."""
+        """Set the activation function of the neuron."""
         if not callable(value):
             raise TypeError(f"Expected {value} to be callable.")
-
         self._activation = value
 
     def __str__(self) -> str:
+        """Return a string representation of the neuron."""
         return f"Neuron(): {self._id}"
 
     def __repr__(self) -> str:
+        """Return a detailed string representation of the neuron."""
         return f"Neuron(): {self._id}"
 
 
-class Node(object):
+class Node:
+    """Class representing an input node."""
 
-    def __init__(self, value: Union[int, float] = 0) -> None:
+    def __init__(self, value: Union[int, float] = 0, indx: int = None) -> None:
+        """
+        Initialize a Node object.
+
+        Args:
+            value (Union[int, float]): The initial value of the node.
+        """
         self._id: int = randint(10_000, 99_999)
         self._z: float = float(verify_type(value, (int, float)))
 
         self._lyr_i: int = 0
-        self._ne_i: int  # Index of the node within its layer
+        self._ne_i: int = indx
 
     @property
-    def value(self) -> float:
-        """The value property."""
+    def z(self) -> float:
+        """Return the value of the node."""
         return self._z
 
-    @value.setter
-    def value(self, value) -> None:
-        self._z = value
+    @z.setter
+    def z(self, value: Union[int, float]) -> None:
+        """Set the value of the node."""
+        self._z = float(verify_type(value, (int, float)))
 
     def __str__(self) -> str:
+        """Return a string representation of the node."""
         return f"Node(): {self._id}"
 
     def __repr__(self) -> str:
+        """Return a detailed string representation of the node."""
         return f"Node(): {self._id}"
 
 
@@ -125,38 +168,51 @@ T = TypeVar("T", Node, Neuron)
 
 
 class Layer(Generic[T]):
-    """Class representing a layer of Neurons"""
+    """Class representing a layer of Neurons or Nodes."""
 
     def __init__(self, n: int, activation="relu", name="layer") -> None:
-        self._n: int = verify_type(n, int)  # Number of neurons in the layer
+        """
+        Initialize a Layer object.
+
+        Args:
+            n (int): Number of neurons or nodes in the layer.
+            activation (str): Activation function for the neurons.
+            name (str): Name of the layer.
+        """
+        self._n: int = verify_type(n, int)
         self._name: str = verify_type(name, str)
 
         if n < 1:
-            raise ValueError("Expected at least 1 Neuron for a Layer()")
+            raise ValueError("Expected at least 1 Neuron or Node for a Layer")
 
         self._structure: List[Union[Node, Neuron]] = [
             Neuron(activation) for _ in range(n)
         ]
-
-        self.__set_indexs()
+        self.__set_indexes()
 
     def __call__(self) -> List[Union[Node, Neuron]]:
+        """Return the structure of the layer."""
         return self._structure
 
     def __str__(self) -> str:
+        """Return a string representation of the layer."""
         return f"Layer({self._n}):\n\t{self._structure}\n"
 
     def __repr__(self) -> str:
+        """Return a detailed string representation of the layer."""
         return f"Layer({self._n}):\n\t{self._structure}\n"
 
     def __len__(self) -> int:
+        """Return the number of neurons or nodes in the layer."""
         return self._n
 
     def __iter__(self) -> Iterator[Union[Node, Neuron]]:
+        """Iterate over the neurons or nodes in the layer."""
         self._iter_index: int = 0
         return self
 
     def __next__(self) -> Union[Node, Neuron]:
+        """Return the next neuron or node in the iteration."""
         if self._iter_index < len(self._structure):
             result = self._structure[self._iter_index]
             self._iter_index += 1
@@ -165,42 +221,46 @@ class Layer(Generic[T]):
             raise StopIteration
 
     def __getitem__(self, indx: int) -> Union[Node, Neuron]:
+        """Return the neuron or node at the specified index."""
         verify_type(indx, int)
-
         if indx >= 0:
             if indx < self._n:
                 return self._structure[indx]
             raise IndexError(f"Index out of range: {indx}")
         else:
-            if indx + 1 <= self._n:
-                return self._structure[-(indx + 1)]
+            if abs(indx) <= self._n:
+                return self._structure[indx]
             raise IndexError(f"Index out of range: {indx}")
 
     def __setitem__(self, indx: int, val: Union[Node, Neuron]) -> None:
+        """Set the neuron or node at the specified index."""
         verify_type(indx, int)
         verify_type(val, (Node, Neuron))
 
         if indx != 0 and isinstance(val, Node):
-            raise TypeError("Node class only permited in the first layer.")
+            raise TypeError("Node class only permitted in the first layer.")
 
-        if not (0 <= self._n < indx):
+        if not (0 <= indx < self._n):
             raise IndexError("Index out of range.")
 
         self._structure[indx] = val
 
-    def __set_indexs(self) -> None:
+    def __set_indexes(self) -> None:
+        """Set the indexes for the neurons or nodes within the layer."""
         for i, n in enumerate(self._structure):
             n._ne_i = i
 
-    def add_neuron(self):
+    def add_neuron(self) -> None:
+        """Add a neuron to the layer."""
         pass
 
-    def remove_neuron(self, indx: int):
+    def remove_neuron(self, indx: int) -> None:
+        """Remove a neuron from the layer."""
         pass
 
 
-class Model(object):
-    """Class representing an abstract class for arquitectures."""
+class Model:
+    """Class representing an abstract class for neural network architectures."""
 
     def __init__(
         self,
@@ -208,123 +268,156 @@ class Model(object):
         loss: str = "mse",
         learning_rate: Union[int, float] = 0.01,
     ) -> None:
-        """Initialize a Model object attrs."""
+        """
+        Initialize a Model object.
+
+        Args:
+            structure (List[Layer]): The structure of the neural network.
+            loss (str): The loss function for the model.
+            learning_rate (Union[int, float]): The learning rate for the model.
+        """
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_type(structure, list)
         self._lr: float = float(verify_type(learning_rate, (int, float)))
-        self._inputs: int = len(self.input_layer)
-        self._outputs: int = len(self.output)
-        self._depth: int = len(self._layers)
 
-        if not loss in loss_map:
+        if loss not in loss_map:
             raise ValueError(
-                f"Expected loss to be in between ({'/'.join([k for k in loss_map.keys()])})"
+                f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
             )
 
         self._loss: Callable = loss_map[loss]
 
-        # Inner set up
-        self.__set_inpt_layer()
+        self.__set_input_layer()
         self.__set_connections()
 
     @property
     def layers(self) -> List[Layer[Union[Node, Neuron]]]:
-        """The layers property."""
+        """Return the layers of the model."""
         return self._layers
 
     @property
     def input_layer(self) -> Layer[Node]:
-        """The input_layer property."""
+        """Return the input layer of the model."""
         return self._layers[0]
 
     @property
     def hidden_layers(self) -> List[Layer[Neuron]]:
-        """The hiden_layers property."""
+        """Return the hidden layers of the model."""
         return self._layers[1:-1]
 
     @property
     def output(self) -> Layer[Neuron]:
-        """The output property."""
+        """Return the output layer of the model."""
         return self._layers[-1]
 
     @property
     def learning_rate(self) -> float:
-        """The learning_rate property."""
+        """Return the learning rate of the model."""
         return self._lr
 
     @learning_rate.setter
     def learning_rate(self, value: Union[int, float]) -> None:
+        """Set the learning rate of the model."""
         self._lr = float(verify_type(value, (int, float)))
 
     @property
     def loss(self) -> Callable:
-        """The loss property."""
+        """Return the loss function of the model."""
         return self._loss
 
     @loss.setter
     def loss(self, value: str) -> None:
-        if value not in loss_map.keys():
+        """Set the loss function of the model."""
+        if value not in loss_map:
             raise ValueError(
-                f"Expected loss to be ({'/'.join([f'{k}' for k in loss_map.keys()])})"
+                f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
             )
-
         self._loss = loss_map[value]
 
-    def __iter__(self) -> Iterator[Layer]:
-        self._iter_index: int = 0
-        return self
+    @property
+    def depth(self) -> int:
+        """Return the depth of the model (number of layers)."""
+        return len(self._layers)
 
-    def __next__(self) -> Layer:
-        if self._iter_index < self._depth:
-            result = self._layers[self._iter_index]
-            self._iter_index += 1
-            return result
-        else:
-            raise StopIteration
-
-    def __set_inpt_layer(self) -> None:
-        """Sets the first layer as class Node."""
-        self.input_layer._structure = [Node() for _ in range(self._inputs)] if self._depth != 1 else self.input_layer._structure
+    def __set_input_layer(self) -> None:
+        """Set the input layer of the model."""
+        self.input_layer._structure = (
+            [Node(indx=n._ne_i) for n in self.input_layer._structure]
+            if self.depth > 1
+            else self.input_layer._structure
+        )
 
     def __set_connections(self) -> None:
-        """Sets the connections between Neurons."""
-        for i in range(1, self._depth):  # [l1, l2, ..., ln]
+        """Set the connections between neurons in the layers."""
+        for i in range(1, self.depth):
             for n in self._layers[i]:
-                # Give value to neuron attrs.
-                n._inputnodes = [node for node in self._layers[i - 1]]
-                n._inputs = [node._z for node in self._layers[i - 1]]
-                n._weights = [random() for _ in range(len(n._inputnodes))]
-                n._n = len(n._inputnodes)
-                n._z = n._activation(
-                    sum([x * w for x, w in zip(n._inputs, n._weights)]) + n._bias
-                )
+                n.inputnodes = [node for node in self._layers[i - 1]]
+                n._lyr_i = i
+
+    def __repr__(self) -> str:
+        return f"Model({len(self._layers)}) object named {search_instnce_name(self)}"
+
+    def __str__(self) -> str:
+        return f"Model({len(self._layers)}) object named {search_instnce_name(self)}"
+
+    @singledispatchmethod
+    def __getitem__(self, indx: Any) -> None:
+        """Docstr"""
+
+        raise TypeError("Not supported type.")
+
+    @__getitem__.register(tuple)
+    def _(self, indx):
+        verify_len(indx, 2)
+        return self._layers[indx[0]][indx[1]]
+
+    @__getitem__.register(float)
+    def _(self, indx: float):
+        i = str(indx).split(".")
+        verify_len(i, 2)
+        print(i)
+        return self._layers[i[0]][i[1]]
+
+    @__getitem__.register(int)
+    def _(self, indx):
+        if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0: 
+            return self._layers[indx]
 
     def forward(self, inputs: List[Union[int, float]]) -> List[float]:
         """
-        Propagates input through the network and returns the output of the model.
+        Propagate input through the network and return the output of the model.
 
         Args:
-        - inputs (List[Union[int, float]]): Input data to be propagated through the network.
+            inputs (List[Union[int, float]]): Input data to be propagated through the network.
 
         Returns:
-        - List[float]: Output of the model after propagating through all layers.
+            List[float]: Output of the model after propagating through all layers.
         """
         verify_components_type(verify_type(inputs, list), (int, float))
 
-        # Ensure the input size matches the size of the input layer
-        if len(inputs) != self._inputs:
+        if len(inputs) != len(self.input_layer._structure):
             raise ValueError("Input size does not match the input layer size.")
 
-        # Set the values of the input layer nodes to the input data
         for i, node in enumerate(self.input_layer):
             node._z = inputs[i]
 
-        # Forward propagate through each layer
-        for i in range(1, self._depth):  # [l1, l2, ..., ln]
-            for n in self._layers[i]:  # [n1, n2, ..., nn]
-                n._inputs = [node._z for node in self._layers[i - 1]]
-                n._z = n._activation(
-                    sum([x * w for x, w in zip(n._inputs, n._weights)]) + n._bias
-                )
+        for i in range(1, self.depth):
+            for n in self._layers[i]:
+                n._z = n.activation(sum(x * w for x, w in zip(n.inputs, n.w)) + n.b)
 
-        # Return the output of the output layer
         return [neuron._z for neuron in self.output]
+
+    def evaluate(self) -> None:
+        """Evaluate the model's performance."""
+        pass
+
+    def save(self) -> None:
+        """Save the model to a file."""
+        pass
+
+    def load(self) -> None:
+        """Load the model from a file."""
+        pass
+
+    def summary(self) -> None:
+        """Print a summary of the model."""
+        pass

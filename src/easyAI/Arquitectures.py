@@ -35,15 +35,15 @@ class Perceptron(Model):
             learning_rate=learning_rate,
         )
 
-    def __call__(self, X: List[Union[int, float]]) -> float:
-        return self.forward(X)[0]
+    def __call__(self, X: List[Union[int, float]]) -> list:
+        return self.forward(X)
 
     def fit(
         self,
         X: List[Union[int, float]],
         y: List[Union[int, float]],
         verbose: Optional[bool] = False,
-    ) -> History:
+    ) -> None:
         """
         Trains the model following the Perceptron Learning Rule.
 
@@ -61,39 +61,26 @@ class Perceptron(Model):
             print("[!] Warning, X size and y size doesn't correspond.")
 
         if len(X) < self._n:
-            return History()
-
-        # Training
-        history: list = []
+            raise ValueError("Expected X to be at least equal to entries amount.")
 
         for epoch in range(len(y)):
             # Narrowing down y for X
             eX = X[epoch * self._n : (epoch + 1) * self._n]
             ey = y[epoch]
 
-            z = self.__call__(eX)
+            z = self.__call__(eX)[0]
 
             # Updating parameters
             if z != ey:
                 for n in self.output:  # [n0, n1, ..., nn]
-                    for i in range(n._n):  # [w-1, w1, ..., wn]
-                        print(f"Updating weight {i}")
-                        n._weights[i] += self._lr * (ey - z) * eX[i]
-                    n._bias += self._lr * (ey - z)
-
-            # Calculate loss MSE for the current epoch
-            epoch_loss = sum(
-                (y[i] - self.__call__(X[i * self._n : (i + 1) * self._n])) ** 2
-                for i in range(len(y))
-            ) / len(y)
-
-            history.append(epoch_loss)
+                    for i in range(n.n):  # [w-1, w1, ..., wn]
+                        n.w[i] += self._lr * (ey - z) * eX[i]
+                    n.b += self._lr * (ey - z)
 
             if verbose:
                 print(
-                    f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}\n\tLoss: {epoch_loss}"
+                    f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}"
                 )
 
-        print(history)
-
-        return History()
+class SimpleRNN(Model):
+    pass

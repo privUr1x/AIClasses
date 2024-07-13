@@ -7,10 +7,13 @@ path.append(p)
 from easyAI.core.objects import Model, Layer
 
 m = Model([
-    Layer(2),
-    Layer(1)
+    Layer(6),
+    Layer(10),
+    Layer(4)
 ])
 
 print(m._layers)
 print(m.input_layer)
 print(m.output)
+
+print("\nTesting nodes indexes...")
