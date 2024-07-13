@@ -35,6 +35,9 @@ class Perceptron(Model):
             learning_rate=learning_rate,
         )
 
+        del self._optimizer
+        del self._loss
+
     def __call__(self, X: List[Union[int, float]]) -> list:
         return self.forward(X)
 
@@ -78,9 +81,8 @@ class Perceptron(Model):
                     n.b += self._lr * (ey - z)
 
             if verbose:
-                print(
-                    f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}"
-                )
+                print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}")
+
 
 class SimpleRNN(Model):
     pass

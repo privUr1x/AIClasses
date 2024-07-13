@@ -4,6 +4,7 @@ from easyAI.core.activations import activation_map
 from easyAI.clsstools.Verifiers import verify_len, verify_type, verify_components_type
 from easyAI.clsstools.Utils import search_instnce_name
 from easyAI.core.loss_func import loss_map
+from easyAI.core.optimizers import optimizers_map
 from functools import singledispatchmethod
 
 RANDOM_SEED: int = 45
@@ -266,6 +267,7 @@ class Model:
         self,
         structure: List[Layer],
         loss: str = "mse",
+        optimizer: str = "adam",
         learning_rate: Union[int, float] = 0.01,
     ) -> None:
         """
@@ -285,6 +287,7 @@ class Model:
             )
 
         self._loss: Callable = loss_map[loss]
+        self._optimizer: Callable = optimizers_map[optimizer]
 
         self.__set_input_layer()
         self.__set_connections()
@@ -360,27 +363,32 @@ class Model:
         return f"Model({len(self._layers)}) object named {search_instnce_name(self)}"
 
     @singledispatchmethod
-    def __getitem__(self, indx: Any) -> None:
+    def __getitem__(self, _: Any, /) -> None:
         """Docstr"""
 
         raise TypeError("Not supported type.")
 
     @__getitem__.register(tuple)
-    def _(self, indx):
+    def _(self, indx: tuple, /):
         verify_len(indx, 2)
         return self._layers[indx[0]][indx[1]]
 
     @__getitem__.register(float)
-    def _(self, indx: float):
-        i = str(indx).split(".")
+    def _(self, indx: float, /):
+        i: list = str(indx).split(".")
         verify_len(i, 2)
-        print(i)
         return self._layers[i[0]][i[1]]
 
     @__getitem__.register(int)
-    def _(self, indx):
+    def _(self, indx, /):
         if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0: 
             return self._layers[indx]
+
+    def __eq__(self, value: object, /) -> bool:
+        return self.__dict__ == value.__dict__
+
+    def __ne__(self, value: object, /) -> bool:
+        return not self.__eq__(value)
 
     def forward(self, inputs: List[Union[int, float]]) -> List[float]:
         """
