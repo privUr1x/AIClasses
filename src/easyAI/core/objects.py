@@ -1,5 +1,5 @@
 from random import random, randint, seed
-from typing import Any, Iterator, Type, Union, List, Callable, TypeVar, Generic, Tuple
+from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Generic
 from easyAI.core.activations import activation_map
 from easyAI.clsstools.Verifiers import verify_len, verify_type, verify_components_type
 from easyAI.clsstools.Utils import search_instnce_name
@@ -48,6 +48,9 @@ class Neuron(object):
         self._inputnodes: List[Union[Node, Neuron]] = []
         self._bias: float = random()
         self._weights: List[float] = []
+        self._z: float = self._activation(
+            sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
+        )
 
         self._lyr_i: int
         self._ne_i: int
@@ -55,9 +58,7 @@ class Neuron(object):
     @property
     def z(self):
         """Calculate and return the output value of the neuron."""
-        return self._activation(
-            sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
-        )
+        return self._z
 
     @property
     def n(self) -> int:
@@ -133,7 +134,7 @@ class Neuron(object):
 class Node(object):
     """Class representing an input node."""
 
-    def __init__(self, value: Union[int, float] = 0, indx: int = None) -> None:
+    def __init__(self, value: Union[int, float] = 0) -> None:
         """
         Initialize a Node object.
 
@@ -144,7 +145,7 @@ class Node(object):
         self._z: float = float(verify_type(value, (int, float)))
 
         self._lyr_i: int = 0
-        self._ne_i: int = indx
+        self._ne_i: int
 
     @property
     def z(self) -> float:
@@ -239,13 +240,15 @@ class Layer(Generic[T]):
         verify_type(indx, int)
         verify_type(val, (Node, Neuron))
 
-        if indx != 0 and isinstance(val, Node):
-            raise TypeError("Node class only permitted in the first layer.")
+        assert indx > 0 and isinstance(val, Node), "Node class only permitted in the first layer."
 
-        if not (0 <= indx < self._n):
-            raise IndexError("Index out of range.")
+        if 0 <= indx < self._n:
+            self._structure[indx] = val
 
-        self._structure[indx] = val
+        elif 0 > indx and len(self._structure) > indx:
+            self._structure[indx] = val
+
+        raise IndexError("Index out of range.")
 
     def __hash__(self) -> int:
         return hash(str(self._structure) + str(self._activation))
@@ -255,13 +258,18 @@ class Layer(Generic[T]):
         for i, n in enumerate(self._structure):
             n._ne_i = i
 
-    def add_neuron(self) -> None:
+    def add_neuron(self, indx: Optional[int] = None) -> None:
         """Add a neuron to the layer."""
-        self._structure.__add__(Neuron(self._activation))
+        if indx is not None: 
+            verify_type(indx, int)
+            self._structure.insert(indx, Neuron(self._activation))
+
+        else: self._structure.append(Neuron(self._activation))
 
     def remove_neuron(self, indx: int) -> None:
         """Remove a neuron from the layer."""
-        self._structure.remove(indx)
+        verify_type(indx, int)
+        self._structure.pop(indx)
 
 class Dense(Layer):
     """Class representing a fully connected layer."""
@@ -305,10 +313,7 @@ class Model:
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_type(structure, list)
         self._lr: float = float(verify_type(learning_rate, (int, float)))
 
-        if loss not in loss_map:
-            raise ValueError(
-                f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
-            )
+        assert loss in loss_map, f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
 
         self._loss: Callable = loss_map[loss]
         self._optimizer: Callable = optimizers_map[optimizer]
@@ -354,10 +359,9 @@ class Model:
     @loss.setter
     def loss(self, value: str) -> None:
         """Set the loss function of the model."""
-        if value not in loss_map:
-            raise ValueError(
-                f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
-            )
+
+        assert value in loss_map, f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+
         self._loss = loss_map[value]
 
     @loss.deleter 
@@ -372,7 +376,7 @@ class Model:
     def __set_input_layer(self) -> None:
         """Set the input layer of the model."""
         self.input_layer._structure = (
-            [Node(indx=n._ne_i) for n in self.input_layer._structure]
+            [Node() for _ in self.input_layer._structure]
             if self.depth > 1
             else self.input_layer._structure
         )
@@ -411,6 +415,8 @@ class Model:
     def _(self, indx, /):
         if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0: 
             return self._layers[indx]
+        
+        raise IndexError("Index out of range.")
 
     def __eq__(self, value: object, /) -> bool:
         return self.__dict__ == value.__dict__
@@ -421,7 +427,7 @@ class Model:
     def __hash__(self) -> int:
         return hash(tuple([l.__hash__() for l in self._layers]))
 
-    def forward(self, inputs: List[Union[int, float]]) -> List[float]:
+    def forward(self, input: List[Union[int, float]]) -> List[float]:
         """
         Propagate input through the network and return the output of the model.
 
@@ -431,13 +437,12 @@ class Model:
         Returns:
             List[float]: Output of the model after propagating through all layers.
         """
-        verify_components_type(verify_type(inputs, list), (int, float))
+        verify_components_type(verify_type(input, list), (int, float))
 
-        if len(inputs) != len(self.input_layer._structure):
-            raise ValueError("Input size does not match the input layer size.")
+        assert len(input) == len(self._layers[0]._structure), "Input size does not match the input layer expected size."
 
         for i, node in enumerate(self.input_layer):
-            node._z = inputs[i]
+            node._z = input[i]
 
         for i in range(1, self.depth):
             for n in self._layers[i]:

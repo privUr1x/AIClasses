@@ -12,4 +12,4 @@ m = Model([
     Layer(4)
 ])
 
-print(m.__hash__())
+print(m.__hash__()) 
