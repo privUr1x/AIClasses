@@ -1,0 +1,4 @@
+python=^3.8
+typing=^3.7.4.3
+random=
+functools=
