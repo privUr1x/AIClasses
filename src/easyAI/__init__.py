@@ -27,13 +27,18 @@ with open(tomlpath, "rb") as f:
 VERSION = toml["tool"]["poetry"]["version"]
 
 # Definición de la versión del paquete
-__version__ = VERSION
+__version__ = VERSION 
 
 # Configuración del registro para el paquete
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+from .configs.default import config 
+from random import seed 
+
+seed(config["seed"])
 
 # Añadinedo path del paquete
 from sys import path

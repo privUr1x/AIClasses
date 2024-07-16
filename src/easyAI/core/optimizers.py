@@ -1,17 +1,43 @@
 from typing import List, Union
+from abc import ABC, abstractmethod
 
 """Module representing optimizers used for training models."""
 
 
-def stochastc_grdnt_descnt(Model, X, y, verbose: bool = False) -> None:
-    pass
+class Optimizer(ABC):
+    """Class representing the abstraction to an optimizer."""
+
+    def __init__(self, learning_rate: Union[int, float]):
+        self._learning_rate: Union[int, float] = learning_rate
+
+    @abstractmethod
+    def update(self, params, grads):
+        pass
 
 
-def adam(Model, X, y, verbose: bool = False) -> None:
-    pass
+class SGD(Optimizer):
+    """Class representing Stochastic Gradient Descent."""
+
+    def __init__(self, learning_rate: Union[int, float]):
+        super().__init__(learning_rate)
+
+
+class Adam(Optimizer):
+    """Class representing Adaptative Moment Estimation."""
+
+    def __init__(self, learning_rate: Union[int, float]):
+        super().__init__(learning_rate)
+
+
+class PLR(Optimizer):
+    """Class representing Perceptron Learning Rule"""
+
+    def __init__(self, learning_rate: Union[int, float]):
+        super().__init__(learning_rate)
+
 
 def perceptron_learning_rule(
-    P, # The perceptron class itself
+    P,  # The perceptron class itself
     X: List[Union[int, float]],
     y: List[Union[int, float]],
     verbose: bool = False,
@@ -37,7 +63,7 @@ def perceptron_learning_rule(
 
 
 optimizers_map: dict = {
-    "sgd": stochastc_grdnt_descnt,
-    "adam": adam,
+    "sgd": SGD,
+    "adam": Adam,
     "plr": perceptron_learning_rule,
 }

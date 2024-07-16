@@ -1,6 +1,6 @@
 from typing import Optional, Union, List
 from easyAI.utils.verifiers import verify_type, verify_components_type, verify_len
-from easyAI.core.objects import History, Model, Dense
+from easyAI.core.objects import History, Layer, Model, Dense
 from easyAI.core.activations import activation_map
 from easyAI.core.loss_func import loss_map
 from easyAI.core.optimizers import optimizers_map
@@ -29,7 +29,7 @@ class Perceptron(Model):
         self._n = verify_type(entries, int)
 
         super().__init__(
-           [
+            [
                 Dense(self._n, name="Input Nodes"),
                 Dense(1, activation=activation, name="SimplePerceptron"),
             ],
@@ -68,5 +68,24 @@ class Perceptron(Model):
         return optimizers_map["plr"](self, X, y, verbose)
 
 
+class MLP(Model):
+    """Class represnetin a Multy-Layer Perceptron."""
+
+    def __init__(
+        self,
+        structure: List[Layer],
+        loss: str = "mse",
+        optimizer: str = "sgd",
+        learning_rate: Union[int, float] = 0.01,
+    ) -> None:
+        super().__init__(structure, loss, optimizer, learning_rate)
+
+
 class SimpleRNN(Model):
+    """Recurent neural netwrok class."""
+    pass
+
+class NN(Model):
+    """Flexible neural network class."""
+
     pass

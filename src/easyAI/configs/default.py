@@ -1,4 +1,7 @@
-config = {
+from typing import Any
+
+
+config: dict[str, Any] = {
     'epochs': 10,
     'learning_rate': 0.001,
     'batch_size': 32,

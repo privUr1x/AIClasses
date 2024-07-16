@@ -1,16 +1,11 @@
-from random import random, randint, seed
+from random import random, randint
 from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Generic
 from easyAI.core.activations import activation_map
 from easyAI.utils.verifiers import verify_len, verify_type, verify_components_type
 from easyAI.utils.instances import search_instnce_name
 from easyAI.core.loss_func import loss_map
-from easyAI.core.optimizers import optimizers_map
+from easyAI.core.optimizers import Optimizer, optimizers_map
 from functools import singledispatchmethod
-
-RANDOM_SEED: int = 45
-
-seed(RANDOM_SEED)
-
 
 class History:
     """Class representing a history object for tracking training progress."""
@@ -324,7 +319,7 @@ class Model:
         ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
 
         self._loss: Callable = loss_map[loss]
-        self._optimizer: Callable = optimizers_map[optimizer]
+        self._optimizer: Optimizer = optimizers_map[optimizer]
 
         self.__set_input_layer()
         self.__set_connections()
