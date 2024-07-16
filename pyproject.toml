@@ -7,7 +7,6 @@ name = "easyAI"
 version = "0.0.1"
 description = "A collection of tools for deep learning using Python"
 authors = ["Uriel Rubio <privuri@gmail.com>"]
-url = "https://github.com/privUr1x/AIClasses"
 
 [tool.poetry.dependencies]
 python = "^3.8"

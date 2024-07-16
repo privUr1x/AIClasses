@@ -12,7 +12,6 @@ name: str = METADATA["name"]
 version: str = METADATA["version"]
 description: str = METADATA["description"]
 author_name, author_email = METADATA["authors"].split(" ")
-url: str = METADATA["url"]
 
 DEPENDENCIES = toml["tool"]["poetry"]["dependencies"]
 python_version: str = DEPENDENCIES["python"]
@@ -29,7 +28,7 @@ setup(
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url=url,
+    url="https://github.com/privUr1x/AIClasses",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",  # Specify supported Python versions
