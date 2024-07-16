@@ -4,7 +4,7 @@ p = "/".join(__file__.split("/")[:-1])
 p += "/../src/"
 path.append(p)
 
-from easyAI.Arquitectures import Perceptron
+from easyAI.models.arquitectures import Perceptron
 from random import randint
 
 ENTRIES: int = 2

@@ -4,7 +4,7 @@ p = "/".join(__file__.split("/")[:-1])
 p += "/../../src/"
 path.append(p)
 
-from easyAI.Arquitectures import Perceptron
+from easyAI.models.arquitectures import Perceptron
 from random import randint
 
 ENTRIES: int = 2
@@ -17,7 +17,7 @@ and_y: list = [int(bool(X[i]) and bool(X[i + 1])) for i in range(0, len(X) - 1, 
 
 and_g = Perceptron(ENTRIES)
 
-and_g.fit(X, and_y, verbose=True)
+and_g.fit(X, and_y)
 
 print(f"""AND:
 [0, 0]: {and_g([0,0])}

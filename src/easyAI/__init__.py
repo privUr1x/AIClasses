@@ -15,8 +15,19 @@ Ejemplo de uso:
 >>> p.fit(X, y, verbose = True)
 """
 
+from tomllib import load
+
+tomlpath: str = "/".join(
+    __file__.split("/")[:-1].__add__(["..", "..", "pyproject.toml"])
+)
+
+with open(tomlpath, "rb") as f:
+    toml = load(f)
+
+VERSION = toml["tool"]["poetry"]["version"]
+
 # Definición de la versión del paquete
-__version__ = "0.1.6"
+__version__ = VERSION
 
 # Configuración del registro para el paquete
 import logging
@@ -25,18 +36,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Añadinedo path del paquete
-import sys
-import os
+from sys import path
+from os.path import dirname, abspath
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+path.append(dirname(abspath(__file__)))
 
 # Importación de submódulos
-from .Arquitectures import Perceptron
+from .models.arquitectures import Perceptron
 
 # Importación de subpaquetes
 from .core import objects
 from .core import activations
 from .core import loss_func
+from .core import optimizers
 
 # Definir el API del paquete mediante __all__
-__all__ = ["Perceptron", "activations", "loss_func"]
+__all__ = ["Perceptron", "activations", "loss_func", "objects", "optimizers"]

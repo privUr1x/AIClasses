@@ -5,7 +5,7 @@ Module representing a set of commonly used activation functions.
 """
 
 from typing import Any, Optional, Union, List
-from easyAI.clsstools.Verifiers import verify_type
+from easyAI.utils.verifiers import verify_type
 from math import log, exp
 
 def step(x: Union[int, float], threshold: Union[int, float] = 0) -> int:

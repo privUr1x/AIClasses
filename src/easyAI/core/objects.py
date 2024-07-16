@@ -1,8 +1,8 @@
 from random import random, randint, seed
 from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Generic
 from easyAI.core.activations import activation_map
-from easyAI.clsstools.Verifiers import verify_len, verify_type, verify_components_type
-from easyAI.clsstools.Utils import search_instnce_name
+from easyAI.utils.verifiers import verify_len, verify_type, verify_components_type
+from easyAI.utils.instances import search_instnce_name
 from easyAI.core.loss_func import loss_map
 from easyAI.core.optimizers import optimizers_map
 from functools import singledispatchmethod
@@ -240,7 +240,9 @@ class Layer(Generic[T]):
         verify_type(indx, int)
         verify_type(val, (Node, Neuron))
 
-        assert indx > 0 and isinstance(val, Node), "Node class only permitted in the first layer."
+        assert indx > 0 and isinstance(
+            val, Node
+        ), "Node class only permitted in the first layer."
 
         if 0 <= indx < self._n:
             self._structure[indx] = val
@@ -260,29 +262,33 @@ class Layer(Generic[T]):
 
     def add_neuron(self, indx: Optional[int] = None) -> None:
         """Add a neuron to the layer."""
-        if indx is not None: 
+        if indx is not None:
             verify_type(indx, int)
             self._structure.insert(indx, Neuron(self._activation))
 
-        else: self._structure.append(Neuron(self._activation))
+        else:
+            self._structure.append(Neuron(self._activation))
 
     def remove_neuron(self, indx: int) -> None:
         """Remove a neuron from the layer."""
         verify_type(indx, int)
         self._structure.pop(indx)
 
+
 class Dense(Layer):
     """Class representing a fully connected layer."""
 
     def __init__(self, n: int, activation="relu", name="layer") -> None:
         super().__init__(n, activation, name)
-    
+
+
 class Conv(Layer):
     """Class representing a convolutional network layer."""
 
     def __init__(self, n: int, activation="relu", name="layer") -> None:
         raise NotImplemented
         super().__init__(n, activation, name)
+
 
 class Rec(Layer):
     """Class representing a recurrent network layer."""
@@ -313,7 +319,9 @@ class Model:
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_type(structure, list)
         self._lr: float = float(verify_type(learning_rate, (int, float)))
 
-        assert loss in loss_map, f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+        assert (
+            loss in loss_map
+        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
 
         self._loss: Callable = loss_map[loss]
         self._optimizer: Callable = optimizers_map[optimizer]
@@ -360,12 +368,14 @@ class Model:
     def loss(self, value: str) -> None:
         """Set the loss function of the model."""
 
-        assert value in loss_map, f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+        assert (
+            value in loss_map
+        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
 
         self._loss = loss_map[value]
 
-    @loss.deleter 
-    def loss(self) -> None: 
+    @loss.deleter
+    def loss(self) -> None:
         del self._loss
 
     @property
@@ -413,10 +423,28 @@ class Model:
 
     @__getitem__.register(int)
     def _(self, indx, /):
-        if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0: 
+        if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0:
             return self._layers[indx]
-        
+
         raise IndexError("Index out of range.")
+
+    @__getitem__.register(list)
+    def _(self, indx: list[int], /):
+        l: list[Layer] = []
+
+        for i in indx:
+            verify_type(i, int)
+
+            if i >= 0:
+                if i > len(self._layers) - 1:
+                    raise IndexError(f"Index out of range {i}.")
+            else:
+                if -i > len(self._layers):
+                    raise IndexError(f"Index out of range: {i}.")
+
+            l.append(self._layers[i])
+
+        return l
 
     def __eq__(self, value: object, /) -> bool:
         return self.__dict__ == value.__dict__
@@ -439,7 +467,9 @@ class Model:
         """
         verify_components_type(verify_type(input, list), (int, float))
 
-        assert len(input) == len(self._layers[0]._structure), "Input size does not match the input layer expected size."
+        assert len(input) == len(
+            self._layers[0]._structure
+        ), "Input size does not match the input layer expected size."
 
         for i, node in enumerate(self.input_layer):
             node._z = input[i]

@@ -1,8 +1,9 @@
 from typing import Optional, Union, List
-from easyAI.clsstools.Verifiers import verify_type, verify_components_type, verify_len
+from easyAI.utils.verifiers import verify_type, verify_components_type, verify_len
 from easyAI.core.objects import History, Model, Dense
 from easyAI.core.activations import activation_map
 from easyAI.core.loss_func import loss_map
+from easyAI.core.optimizers import optimizers_map
 
 
 class Perceptron(Model):
@@ -28,7 +29,7 @@ class Perceptron(Model):
         self._n = verify_type(entries, int)
 
         super().__init__(
-            [
+           [
                 Dense(self._n, name="Input Nodes"),
                 Dense(1, activation=activation, name="SimplePerceptron"),
             ],
@@ -45,7 +46,7 @@ class Perceptron(Model):
         self,
         X: List[Union[int, float]],
         y: List[Union[int, float]],
-        verbose: Optional[bool] = False,
+        verbose: bool = False,
     ) -> None:
         """
         Trains the model following the Perceptron Learning Rule.
@@ -53,7 +54,6 @@ class Perceptron(Model):
         Returns:
             - History: The history loss.
         """
-
         # Verify type of X and y, and verbose option
         X = verify_components_type(verify_type(X, list), (int, float))
         y = verify_components_type(verify_type(y, list), (int, float))
@@ -63,25 +63,9 @@ class Perceptron(Model):
         if len(X) % self._n != 0:
             print("[!] Warning, X size and y size doesn't correspond.")
 
-        if len(X) < self._n:
-            raise ValueError("Expected X to be at least equal to entries amount.")
+        assert len(X) > self._n, "Expected X to be at least equal to entries amount."
 
-        for epoch in range(len(y)):
-            # Narrowing down y for X
-            eX = X[epoch * self._n : (epoch + 1) * self._n]
-            ey = y[epoch]
-
-            z = self.__call__(eX)[0]
-
-            # Updating parameters
-            if z != ey:
-                for n in self.output:  # [n0, n1, ..., nn]
-                    for i in range(n.n):  # [w-1, w1, ..., wn]
-                        n.w[i] += self._lr * (ey - z) * eX[i]
-                    n.b += self._lr * (ey - z)
-
-            if verbose:
-                print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}")
+        return optimizers_map["plr"](self, X, y, verbose)
 
 
 class SimpleRNN(Model):

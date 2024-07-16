@@ -11,5 +11,3 @@ m = Model([
     Layer(10),
     Layer(4)
 ])
-
-print(m.__hash__()) 

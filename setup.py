@@ -1,20 +1,35 @@
 from setuptools import setup, find_packages
 
 # Load the content of the README file
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
+
+with open("pyproject.toml", "rb", encoding="utf-8") as f:
+    toml = f.read()
+
+METADATA = toml["tool"]["poetry"]
+name: str = METADATA["name"]
+version: str = METADATA["version"]
+description: str = METADATA["description"]
+author_name, author_email = METADATA["authors"].split(" ")
+url: str = METADATA["url"]
+
+DEPENDENCIES = toml["tool"]["poetry"]["dependencies"]
+python_version: str = DEPENDENCIES["python"]
+requirements: list[str]
+dev_req: list[str]
 
 VERSION = '0.0.1'
 
 setup(
-    name="easyAI",
-    version="0.0.1",
-    author="privUr1x",
-    author_email="privuri@gmail.com",
-    description="A package for utilizing deep learning models and tools using only Python and simple libraries like random or typing",
+    name=name,
+    version=version,
+    author=author_name,
+    author_email=author_email,
+    description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/privUr1x/AIClasses",
+    url=url,
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",  # Specify supported Python versions
