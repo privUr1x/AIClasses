@@ -47,7 +47,7 @@ from os.path import dirname, abspath
 path.append(dirname(abspath(__file__)))
 
 # Importación de submódulos
-from .models.arquitectures import Perceptron
+from .models import arquitectures
 
 # Importación de subpaquetes
 from .core import objects
@@ -56,4 +56,4 @@ from .core import loss_func
 from .core import optimizers
 
 # Definir el API del paquete mediante __all__
-__all__ = ["Perceptron", "activations", "loss_func", "objects", "optimizers"]
+__all__ = ["activations", "loss_func", "objects", "optimizers", "arquitectures"]

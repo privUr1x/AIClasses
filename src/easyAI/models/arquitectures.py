@@ -1,10 +1,9 @@
 from typing import Optional, Union, List
 from easyAI.utils.verifiers import verify_type, verify_components_type, verify_len
-from easyAI.core.objects import History, Layer, Model, Dense
+from easyAI.core.objects import Layer, Model, Dense, Rec, Conv
 from easyAI.core.activations import activation_map
 from easyAI.core.loss_func import loss_map
 from easyAI.core.optimizers import optimizers_map
-
 
 class Perceptron(Model):
     "Class representing a Perceptron (Unitary Layer FeedForward Fully Conected Model)"
@@ -35,6 +34,8 @@ class Perceptron(Model):
             ],
             learning_rate=learning_rate,
         )
+
+        self._name: str = "Simple Perceptron"
 
         del self._optimizer
         del self.loss
@@ -74,12 +75,23 @@ class MLP(Model):
     def __init__(
         self,
         structure: List[Layer],
+        *,
         loss: str = "mse",
         optimizer: str = "sgd",
         learning_rate: Union[int, float] = 0.01,
     ) -> None:
-        super().__init__(structure, loss, optimizer, learning_rate)
+        super().__init__(structure, loss=loss, optimizer=optimizer, learning_rate=learning_rate)
+        self._name: str = "Multy-Layer Perceptron"
+        self._n: int = len(self.input_layer)
 
+    def __str__(self) -> str:
+        return super().__str__() + f"\n{[layer for layer in self.layers]}"
+
+    def __repr__(self) -> str:
+        return super().__repr__() + f"\n{[layer for layer in self.layers]}"
+
+    def fit(self) -> None:
+        raise NotImplemented
 
 class SimpleRNN(Model):
     """Recurent neural netwrok class."""

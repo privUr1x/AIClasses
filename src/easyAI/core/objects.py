@@ -1,3 +1,4 @@
+from abc import ABC
 from random import random, randint
 from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Generic
 from easyAI.core.activations import activation_map
@@ -7,7 +8,7 @@ from easyAI.core.loss_func import loss_map
 from easyAI.core.optimizers import Optimizer, optimizers_map
 from functools import singledispatchmethod
 
-class History:
+class Hstory:
     """Class representing a history object for tracking training progress."""
 
     def __init__(self):
@@ -293,12 +294,13 @@ class Rec(Layer):
         super().__init__(n, activation, name)
 
 
-class Model:
+class Model(ABC):
     """Class representing an abstract class for neural network architectures."""
 
     def __init__(
         self,
         structure: List[Layer],
+        *,
         loss: str = "mse",
         optimizer: str = "adam",
         learning_rate: Union[int, float] = 0.01,
@@ -311,12 +313,17 @@ class Model:
             loss (str): The loss function for the model.
             learning_rate (Union[int, float]): The learning rate for the model.
         """
+        self._name: str = "Abstract Model."
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_type(structure, list)
         self._lr: float = float(verify_type(learning_rate, (int, float)))
 
         assert (
             loss in loss_map
         ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+
+        assert (
+            optimizer in optimizers_map
+        ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
 
         self._loss: Callable = loss_map[loss]
         self._optimizer: Optimizer = optimizers_map[optimizer]
@@ -394,10 +401,10 @@ class Model:
                 n._lyr_i = i
 
     def __repr__(self) -> str:
-        return f"Model({len(self._layers)}) object named {search_instnce_name(self)}"
+        return f"{self._name}({len(self._layers)}) object named {search_instnce_name(self)}"
 
     def __str__(self) -> str:
-        return f"Model({len(self._layers)}) object named {search_instnce_name(self)}"
+        return f"{self._name}({len(self._layers)}) object named {search_instnce_name(self)}"
 
     @singledispatchmethod
     def __getitem__(self, _: Any, /) -> None:
@@ -450,6 +457,9 @@ class Model:
     def __hash__(self) -> int:
         return hash(tuple([l.__hash__() for l in self._layers]))
 
+    def __call__(self, input: List[Union[int, float]]) -> List[float]:
+        return self.forward(input)
+
     def forward(self, input: List[Union[int, float]]) -> List[float]:
         """
         Propagate input through the network and return the output of the model.
@@ -463,14 +473,15 @@ class Model:
         verify_components_type(verify_type(input, list), (int, float))
 
         assert len(input) == len(
-            self._layers[0]._structure
+            self.input_layer._structure
         ), "Input size does not match the input layer expected size."
 
+        # Instanciate node value with inputs
         for i, node in enumerate(self.input_layer):
             node._z = input[i]
 
         for i in range(1, self.depth):
-            for n in self._layers[i]:
+            for n in self.layers[i]:
                 n._z = n.activation(sum(x * w for x, w in zip(n.inputs, n.w)) + n.b)
 
         return [neuron._z for neuron in self.output]
