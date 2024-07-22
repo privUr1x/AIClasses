@@ -2,7 +2,7 @@ from typing import Optional, Union, List
 from easyAI.utils.verifiers import verify_type, verify_components_type, verify_len
 from easyAI.core.objects import Layer, Model, Dense, Rec, Conv
 from easyAI.core.activations import activation_map
-from easyAI.core.loss_func import loss_map
+from easyAI.core.loss import loss_map
 from easyAI.core.optimizers import optimizers_map
 
 class Perceptron(Model):
@@ -51,9 +51,6 @@ class Perceptron(Model):
     ) -> None:
         """
         Trains the model following the Perceptron Learning Rule.
-
-        Returns:
-            - History: The history loss.
         """
         # Verify type of X and y, and verbose option
         X = verify_components_type(verify_type(X, list), (int, float))
@@ -80,6 +77,7 @@ class MLP(Model):
         optimizer: str = "sgd",
         learning_rate: Union[int, float] = 0.01,
     ) -> None:
+
         super().__init__(structure, loss=loss, optimizer=optimizer, learning_rate=learning_rate)
         self._name: str = "Multy-Layer Perceptron"
         self._n: int = len(self.input_layer)
@@ -90,8 +88,15 @@ class MLP(Model):
     def __repr__(self) -> str:
         return super().__repr__() + f"\n{[layer for layer in self.layers]}"
 
-    def fit(self) -> None:
-        raise NotImplemented
+    def fit(self, X: list[Union[int, float]], Y: list[Union[int, float]], *, epochs: int, verbose: bool = False) -> None:
+        """Traings the model algorithmically based on the optimizer."""
+        verify_components_type(verify_type(X, list), (int, float))
+        verify_components_type(verify_type(Y, list), (int, float))
+        verify_type(verbose, bool)
+        verify_type(epochs)
+
+        return self._optimizer(X, Y, epochs, self.learning_rate, verbose)
+        
 
 class SimpleRNN(Model):
     """Recurent neural netwrok class."""

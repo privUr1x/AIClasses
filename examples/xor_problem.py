@@ -14,10 +14,10 @@ X: list[int] = [randint(0, 1) for _ in range(600)]
 y: list[int] = [xor(X[i], X[i + 1]) for i in range(0, len(X) - 1, 2)]
 
 nn = MLP([
-    Layer(2),
-    Layer(2, "step"),
-    Layer(1, "step"),
+    Layer(2),  # Input layer (nodes)
+    Layer(2, "step"),  # Hidden layer (neurons)
+    Layer(1, "step"),  # Output layer (neuron)
 ],
-    optimizer="plr")
+    optimizer="sgd")
 
 exit()

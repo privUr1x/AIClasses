@@ -4,9 +4,10 @@ from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Gene
 from easyAI.core.activations import activation_map
 from easyAI.utils.verifiers import verify_len, verify_type, verify_components_type
 from easyAI.utils.instances import search_instnce_name
-from easyAI.core.loss_func import loss_map
+from easyAI.core.loss import loss_map
 from easyAI.core.optimizers import Optimizer, optimizers_map
 from functools import singledispatchmethod
+
 
 class Hstory:
     """Class representing a history object for tracking training progress."""
@@ -166,9 +167,9 @@ T = TypeVar("T", Node, Neuron)
 
 
 class Layer(Generic[T]):
-    """Class representing a layer of Neurons or Nodes."""
+    """Class representing an abstract layer of Neurons or Nodes."""
 
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
+    def __init__(self, n: int, activation="relu", *, name="layer") -> None:
         """
         Initialize a Layer object.
 
@@ -270,30 +271,6 @@ class Layer(Generic[T]):
         verify_type(indx, int)
         self._structure.pop(indx)
 
-
-class Dense(Layer):
-    """Class representing a fully connected layer."""
-
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
-        super().__init__(n, activation, name)
-
-
-class Conv(Layer):
-    """Class representing a convolutional network layer."""
-
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
-        raise NotImplemented
-        super().__init__(n, activation, name)
-
-
-class Rec(Layer):
-    """Class representing a recurrent network layer."""
-
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
-        raise NotImplemented
-        super().__init__(n, activation, name)
-
-
 class Model(ABC):
     """Class representing an abstract class for neural network architectures."""
 
@@ -326,7 +303,7 @@ class Model(ABC):
         ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
 
         self._loss: Callable = loss_map[loss]
-        self._optimizer: Optimizer = optimizers_map[optimizer]
+        self._optimizer: Optimizer = optimizers_map[optimizer](self.learning_rate)
 
         self.__set_input_layer()
         self.__set_connections()
@@ -488,16 +465,16 @@ class Model(ABC):
 
     def evaluate(self) -> None:
         """Evaluate the model's performance."""
-        pass
+        raise NotImplemented
 
     def save(self) -> None:
         """Save the model to a file."""
-        pass
+        raise NotImplemented
 
     def load(self) -> None:
         """Load the model from a file."""
-        pass
+        raise NotImplemented
 
     def summary(self) -> None:
         """Print a summary of the model."""
-        pass
+        raise NotImplemented

@@ -10,10 +10,10 @@ from random import randint
 ENTRIES: int = 2
 
 # Building logical gates (OR, AND, NOT)
-X: list = [randint(0, 1) for _ in range(200)]
+X: list[int] = [randint(0, 1) for _ in range(200)]
 
 # AND gate
-and_y: list = [int(bool(X[i]) and bool(X[i + 1])) for i in range(0, len(X) - 1, 2)]
+and_y: list[int] = [int(bool(X[i]) and bool(X[i + 1])) for i in range(0, len(X) - 1, 2)]
 
 and_g = Perceptron(ENTRIES)
 

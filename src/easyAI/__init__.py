@@ -52,8 +52,8 @@ from .models import arquitectures
 # Importación de subpaquetes
 from .core import objects
 from .core import activations
-from .core import loss_func
+from .core import loss
 from .core import optimizers
 
 # Definir el API del paquete mediante __all__
-__all__ = ["activations", "loss_func", "objects", "optimizers", "arquitectures"]
+__all__ = ["activations", "loss", "objects", "optimizers", "arquitectures"]
