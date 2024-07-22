@@ -1,13 +1,23 @@
 """Module representing the layers API."""
 
-from easyAI.core.objects import Layer
+from collections.abc import Callable
+from easyAI.core.objects import Layer, Neuron, Node
 
 class Dense(Layer):
     """Class representing a fully connected layer."""
 
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
+    def __init__(self, n: int, *, activation="relu", name="layer") -> None:
         super().__init__(n, activation=activation, name=name)
 
+class NodeLayer(Layer):
+    """Class representing a node layer."""
+
+    def __init__(self, n: int, *, name="layer") -> None:
+        super().__init__(n, activation="step", name=name)
+
+        self._structure = [Node() for _ in range(self._n)]
+    
+        del self._activation
 
 class Conv(Layer):
     """Class representing a convolutional network layer."""

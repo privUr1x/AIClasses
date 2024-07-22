@@ -10,4 +10,6 @@ m = Model([
     Layer(6),
     Layer(10),
     Layer(4)
-])
+], loss="mse", optimizer="sgd", learning_rate=0.001)
+
+print(m.layers)

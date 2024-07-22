@@ -47,7 +47,8 @@ from os.path import dirname, abspath
 path.append(dirname(abspath(__file__)))
 
 # Importación de submódulos
-from .models import arquitectures
+from . import arquitectures
+from . import layers
 
 # Importación de subpaquetes
 from .core import objects
@@ -56,4 +57,4 @@ from .core import loss
 from .core import optimizers
 
 # Definir el API del paquete mediante __all__
-__all__ = ["activations", "loss", "objects", "optimizers", "arquitectures"]
+__all__ = ["activations", "loss", "objects", "optimizers", "arquitectures", "layers"]

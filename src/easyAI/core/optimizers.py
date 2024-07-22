@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Any, List, Union
 from abc import ABC, abstractmethod
 
 """Module representing optimizers used for training models."""
@@ -7,21 +7,17 @@ from abc import ABC, abstractmethod
 class Optimizer(ABC):
     """Class representing the abstraction to an optimizer."""
 
-    def __init__(self, learning_rate: Union[int, float], epochs: int):
+    def __init__(self, learning_rate: Union[int, float]):
         self._learning_rate: Union[int, float] = learning_rate
-        self._epochs: int = epochs
 
-    @abstractmethod
-    def update(self, params, grads):
-        pass
-
+    def __call__(self) -> None: ...
 
 class SGD(Optimizer):
     """Class representing Stochastic Gradient Descent."""
 
     def __init__(
         self,
-        learning_rate: Union[int, float] = 0.01,
+        learning_rate: Union[int, float],
     ):
         """
         Inicializa el optimizador de descenso de gradiente estocástico.
@@ -29,17 +25,14 @@ class SGD(Optimizer):
         :param learning_rate: Tasa de aprendizaje para las actualizaciones de los parámetros.
         :param epochs: Número de épocas de entrenamiento.
         """
-        super().__init__(learning_rate=learning_rate, epochs=epochs)
-
-        self.learning_rate = learning_rate
-        self.epochs = epochs
+        super().__init__(learning_rate=learning_rate)
 
     def fit(
         self,
         X: list[Union[int, float]],
         Y: list[Union[int, float]],
         epochs,
-        verbose: bool
+        verbose: bool,
     ):
         """
         Ajusta los parámetros del modelo utilizando descenso de gradiente estocástico.
@@ -94,45 +87,48 @@ class SGD(Optimizer):
 class Adam(Optimizer):
     """Class representing Adaptative Moment Estimation."""
 
-    def __init__(self, learning_rate: Union[int, float], epochs=100):
-        super().__init__(learning_rate, epochs)
+    def __init__(self, learning_rate: Union[int, float]):
+        super().__init__(learning_rate)
 
 
 class PLR(Optimizer):
     """Class representing Perceptron Learning Rule"""
 
-    def __init__(self, learning_rate: Union[int, float], epochs=100):
-        super().__init__(learning_rate, epochs)
+    def __init__(self, learning_rate: Union[int, float]):
+        super().__init__(learning_rate)
 
+    def __call__(
+        self,
+        P,  # The perceptron class itself
+        X: List[Union[int, float]],
+        y: List[Union[int, float]],
+        *,
+        verbose: bool,
+        epochs: int
+    ) -> Any:
+        for epoch in range(epochs):
+            for i in range(len(y)):
+                # Narrowing down y for X
+                eX = X[i * P.n : (i + 1) * P.n]
+                ey = y[i]
 
-def perceptron_learning_rule(
-    P,  # The perceptron class itself
-    X: List[Union[int, float]],
-    y: List[Union[int, float]],
-    verbose: bool = False,
-):
-    for epoch in range(len(y)):
-        # Narrowing down y for X
-        eX = X[epoch * P._n : (epoch + 1) * P._n]
-        ey = y[epoch]
+                z = P.__call__(eX)[0]
 
-        z = P.__call__(eX)[0]
+                # Updating parameters
+                if z != ey:
+                    for n in P.output:  # [n0, n1, ..., nn]
+                        for i in range(n.n):  # [w-1, w1, ..., wn]
+                            n.w[i] += self._learning_rate * (ey - z) * eX[i]
+                        n.b += P._lr * (ey - z)
 
-        # Updating parameters
-        if z != ey:
-            for n in P.output:  # [n0, n1, ..., nn]
-                for i in range(n.n):  # [w-1, w1, ..., wn]
-                    n.w[i] += P._lr * (ey - z) * eX[i]
-                n.b += P._lr * (ey - z)
+                if verbose:
+                    print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}")
 
-        if verbose:
-            print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}")
-
-    return None
+        return None
 
 
 optimizers_map: dict = {
     "sgd": SGD,
     "adam": Adam,
-    "plr": perceptron_learning_rule,
+    "plr": PLR,
 }
