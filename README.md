@@ -23,21 +23,25 @@ pip install -r requirements.txt
 Below is an example of using `easyAI` to train a deep learning model on a simple XOR logic problem:
 
 ```Python
-from easyAI.core import Model
-from easyAI.arquitectures import Perceptron
-from easyAI.datasets import load_xor_data
+from easyAI.arquitectures import MLP
+from easyAI.layers import Dense
+from easyAI.datasets import load, mnist
 
 # Load the data
-train_data, train_labels = load_xor_data()
+train_data, train_labels = load(mnist)
 
 # Define the model architecture
-model = Model(Perceptron(input_size=2, output_size=1))
+model = MLP([
+    Dense(128),
+    Dense(40),
+    Dense(1)
+])
 
 # Train the model
-model.train(train_data, train_labels, epochs=1000, learning_rate=0.01)
+history = model.fit(train_data, train_labels, epochs=1000, learning_rate=0.01)
 
 # Evaluate the model
-accuracy = model.evaluate(train_data, train_labels)
+accuracy = history.accuracy
 print(f'Accuracy: {accuracy}')
 ````
 
