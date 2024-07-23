@@ -1,4 +1,5 @@
-# easyAI
+# ![nn](https://github.com/user-attachments/assets/ec05f29e-f71c-4ae6-82c9-14a26e1e2eaf)
+easyAI
 
 ## Description
 
