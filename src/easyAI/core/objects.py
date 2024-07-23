@@ -21,36 +21,27 @@ class Neuron(object):
         """
         self._id: int = randint(10_000, 99_999)
 
-
         self._inputnodes: List[Union[Node, Neuron]] = []
         self._bias: float = random()
         self._weights: List[float] = []
         self._activation: Callable = activation
-        self._z: float = sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
-        self._output: float = self.activation(self.z)
-
         self._lyr_i: int
         self._ne_i: int
 
     @property
     def output(self):
         """Calculate and return the output value of the neuron."""
-        return self._output
+        return self.activation(self.z)
 
     @property
     def z(self):
         """The z property."""
-        return self._z
+        return sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
 
     @property
     def n(self) -> int:
         """Return the number of input nodes connected to the neuron."""
         return len(self.inputnodes)
-
-    @n.setter
-    def n(self, value: int) -> None:
-        """Set the number of input nodes connected to the neuron."""
-        self._n = verify_type(value, int)
 
     @property
     def b(self) -> float:
@@ -178,6 +169,7 @@ class Layer(Generic[T]):
         self._structure: List[Union[Node, Neuron]] = [
             Neuron(self._activation) for _ in range(n)
         ]
+
         self.__set_indexes()
 
     @property
@@ -245,7 +237,7 @@ class Layer(Generic[T]):
         raise IndexError("Index out of range.")
 
     def __hash__(self) -> int:
-       return hash(str(self._structure) + str(self._activation))
+        return hash(str(self._structure) + str(self._activation))
 
     def __set_indexes(self) -> None:
         """Set the indexes for the neurons or nodes within the layer."""
@@ -273,10 +265,6 @@ class Model(ABC):
     def __init__(
         self,
         structure: List[Layer[Union[Node, Neuron]]],
-        *,
-        loss: str,
-        optimizer: str,
-        learning_rate: Union[int, float],
     ) -> None:
         """
         Initialize a Model object.
@@ -293,18 +281,6 @@ class Model(ABC):
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_components_type(
             verify_type(structure, list), Layer
         )
-        self._lr: float = float(verify_type(learning_rate, (int, float)))
-
-        assert (
-            loss in loss_map
-        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
-
-        assert (
-            optimizer in optimizers_map
-        ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
-
-        self._loss: Callable = loss_map[loss]
-        self._optimizer: Optimizer = optimizers_map[optimizer](self.learning_rate)
 
         self.__set_input_layer()
         self.__set_connections()
@@ -439,9 +415,24 @@ class Model(ABC):
     def __set_connections(self) -> None:
         """Set the connections between neurons in the layers."""
         for i in range(1, self.depth):
+            # Not reaching Nodes
             for n in self._layers[i]:
                 n.inputnodes = [node for node in self._layers[i - 1]]
                 n._lyr_i = i
+
+    def add(self, layer: Layer, indx: int = -1) -> None:
+        """Add a layer to the model."""
+        verify_type(layer, Layer)
+        verify_type(indx, int)
+
+        self._layers.insert(indx, layer)
+
+    def remove(self, layer: Layer, indx: int = -1) -> None:
+        """Remove a layer from the model."""
+        verify_type(layer, Layer)
+        verify_type(indx, int)
+
+        self._layers.pop(indx)
 
     def forward(self, input: List[Union[int, float]]) -> List[float]:
         """
@@ -463,11 +454,43 @@ class Model(ABC):
         for i, node in enumerate(self.input_layer):
             node._output = input[i]
 
-        for i in range(1, self.depth):
-            for n in self.layers[i]:
-                n._output = n.activation(sum(x * w for x, w in zip(n.inputs, n.w)) + n.b)
+        return [neuron.output for neuron in self.output]
 
-        return [neuron._output for neuron in self.output]
+    def fit(
+        self,
+        X,
+        Y,
+        *,
+        loss: str,
+        epochs: int,
+        optimizer: str,
+        learning_rate: Union[int, float],
+    ):
+        verify_components_type(verify_type(X, list), (int, float))
+        verify_components_type(verify_type(Y, list), (int, float))
+        verify_type(int(epochs), int)
+
+        assert self.n < len(
+            X
+        ), "Training data expected to be larger than input nodes in size."
+
+        assert epochs >= 1, "Expected at least 1 epoch."
+
+        assert (
+            loss in loss_map
+        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+
+        assert (
+            optimizer in optimizers_map
+        ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
+
+        self._lr: Union[int, float] = verify_type(learning_rate, (int, float))
+        self._loss: Callable = loss_map[loss]
+        self._optimizer: Optimizer = optimizers_map[optimizer](
+            learning_rate=self.learning_rate, epochs=epochs, loss=self.loss
+        )
+
+        return History(*self._optimizer.fit(X, Y, self.n))
 
     def evaluate(self) -> None:
         """Evaluate the model's performance."""
@@ -486,7 +509,7 @@ class Model(ABC):
         raise NotImplemented
 
 
-class Hstory:
+class History:
     """Class representing a history object for tracking training progress."""
 
     def __init__(self):

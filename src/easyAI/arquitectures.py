@@ -15,7 +15,6 @@ class Perceptron(Model):
         entries: int,
         *,
         activation: str = "step",
-        learning_rate: Union[int, float] = 0.1,
     ) -> None:
         """
         Builds an instance give X training data, y training data and entries.
@@ -30,13 +29,10 @@ class Perceptron(Model):
 
         self._name: str = "Simple Perceptron"
 
-        super().__init__([NodeLayer(entries), Dense(1, activation=activation, name=self._name)],
-            loss="mse",
-            optimizer="plr", 
-            learning_rate=learning_rate, 
-        )
-
-        del self.loss
+        super().__init__([
+            NodeLayer(entries), 
+            Dense(1, activation=activation, name=self._name
+        )])
 
     def __call__(self, X: List[Union[int, float]]) -> list:
         return self.forward(X)
@@ -64,7 +60,7 @@ class Perceptron(Model):
 
         assert len(X) > self.n, "Expected X to be at least equal to entries amount."
 
-        return self._optimizer(self, X, y, epochs=epochs, verbose=verbose)
+        return self._optimizer(X, y, epochs=epochs, verbose=verbose)
 
 
 class MLP(Model):
@@ -73,17 +69,11 @@ class MLP(Model):
     def __init__(
         self,
         structure: List[Layer],
-        *,
-        loss: str = "mse",
-        optimizer: str = "sgd",
-        learning_rate: Union[int, float] = 0.01,
     ) -> None:
+        verify_components_type(verify_type(structure, list), Dense)
 
-        super().__init__(
-            structure, loss=loss, optimizer=optimizer, learning_rate=learning_rate
-        )
+        super().__init__(structure=structure)
         self._name: str = "Multy-Layer Perceptron"
-        self._n: int = len(self.input_layer)
 
     def __str__(self) -> str:
         return super().__str__() + f"\n{[layer for layer in self.layers]}"
@@ -92,21 +82,14 @@ class MLP(Model):
         return super().__repr__() + f"\n{[layer for layer in self.layers]}"
 
     def fit(
-        self,
         X: list[Union[int, float]],
         Y: list[Union[int, float]],
         *,
-        epochs: int,
-        verbose: bool = False,
+        epochs: int = 10,
+        learning_rate: Union[int, float] = 10e-2
     ) -> None:
         """Traings the model algorithmically based on the optimizer."""
-        verify_components_type(verify_type(X, list), (int, float))
-        verify_components_type(verify_type(Y, list), (int, float))
-        verify_type(verbose, bool)
-        verify_type(epochs)
-
-        return self._optimizer(X, Y, epochs, self.learning_rate, verbose)
-
+        super().fit(X, Y, loss="mse", epochs=epochs, learning_rate=learning_rate, optimizer="sgd")
 
 class SimpleRNN(Model):
     """Recurent neural netwrok class."""
