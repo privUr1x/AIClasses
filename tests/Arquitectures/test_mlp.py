@@ -12,3 +12,4 @@ nn = MLP([
     Dense(1)
 ])
 
+print(nn)

@@ -1,12 +1,14 @@
 from typing import Any
 
-
+# Default config for a personalized nn
 config: dict[str, Any] = {
-    'epochs': 10,
-    'learning_rate': 0.001,
+    'epochs': 100,
+    'learning_rate': 0.01,
     'batch_size': 32,
-    'optimizer': 'adam',
+    'optimizer': 'sgd',
     'seed': 42,
-    'activation': 'sigmoid'
-    # Other configs params
+    'activation': 'sigmoid',
+    'loss': 'mse',
 }
+
+...
