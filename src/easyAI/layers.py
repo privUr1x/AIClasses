@@ -16,8 +16,10 @@ class NodeLayer(Layer):
         super().__init__(n, activation="step", name=name)
 
         self._structure = [Node() for _ in range(self._n)]
-    
+
         del self._activation
+
+        super()._set_indexes()
 
 class Conv(Layer):
     """Class representing a convolutional network layer."""

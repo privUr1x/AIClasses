@@ -170,7 +170,7 @@ class Layer(Generic[T]):
             Neuron(self._activation) for _ in range(n)
         ]
 
-        self.__set_indexes()
+        self._set_indexes()
 
     @property
     def n(self):
@@ -239,7 +239,7 @@ class Layer(Generic[T]):
     def __hash__(self) -> int:
         return hash(str(self._structure) + str(self._activation))
 
-    def __set_indexes(self) -> None:
+    def _set_indexes(self) -> None:
         """Set the indexes for the neurons or nodes within the layer."""
         for i, n in enumerate(self._structure):
             n._ne_i = i
@@ -301,9 +301,14 @@ class Model(ABC):
         return self._layers[1:-1]
 
     @property
-    def output(self) -> Layer[Neuron]:
+    def output_layer(self) -> Layer[Neuron]:
         """Return the output layer of the model."""
         return self._layers[-1]
+
+    @property
+    def _output(self):
+        """The output property."""
+        return [self.output_layer[i].output for i in range(len(self.output_layer))]
 
     @property
     def learning_rate(self) -> float:
@@ -454,7 +459,7 @@ class Model(ABC):
         for i, node in enumerate(self.input_layer):
             node._output = input[i]
 
-        return [neuron.output for neuron in self.output]
+        return [neuron.output for neuron in self.output_layer]
 
     def fit(
         self,
@@ -490,7 +495,9 @@ class Model(ABC):
             learning_rate=self.learning_rate, epochs=epochs, loss=self.loss
         )
 
-        return History(*self._optimizer.fit(X, Y, self.n))
+        return self._optimizer.fit(X, Y, self.n)
+
+        # return History(*self._optimizer.fit(X, Y, self.n))
 
     def evaluate(self) -> None:
         """Evaluate the model's performance."""

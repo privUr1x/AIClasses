@@ -70,7 +70,7 @@ class MLP(Model):
         self,
         structure: List[Layer],
     ) -> None:
-        verify_components_type(verify_type(structure, list), Dense)
+        verify_components_type(verify_type(structure, list), (NodeLayer, Dense))
 
         super().__init__(structure=structure)
         self._name: str = "Multy-Layer Perceptron"
