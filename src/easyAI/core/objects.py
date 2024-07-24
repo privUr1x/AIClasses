@@ -282,6 +282,9 @@ class Model(ABC):
             verify_type(structure, list), Layer
         )
 
+        self._lr: Union[int, float]
+        self._loss: Callable
+
         self.__set_input_layer()
         self.__set_connections()
 
@@ -470,6 +473,7 @@ class Model(ABC):
         epochs: int,
         optimizer: str,
         learning_rate: Union[int, float],
+        verbose: bool
     ):
         verify_components_type(verify_type(X, list), (int, float))
         verify_components_type(verify_type(Y, list), (int, float))
@@ -489,16 +493,18 @@ class Model(ABC):
             optimizer in optimizers_map
         ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
 
-        # [TO-DO]
-        # Narrow down/prepare data size (intput & output)
+        length_relation: int = len(X) // len(Y)
 
         self._lr: Union[int, float] = verify_type(learning_rate, (int, float))
         self._loss: Callable = loss_map[loss]
         self._optimizer: Optimizer = optimizers_map[optimizer](
-            learning_rate=self.learning_rate, epochs=epochs, loss=self.loss
+            model=self, learning_rate=self.learning_rate, epochs=epochs, loss=self.loss
         )
 
-        return self._optimizer.fit(X, Y, self.n)
+        X = X[: len(X) * length_relation]
+        Y = Y[: len(Y) * length_relation]
+
+        return self._optimizer.fit(X, Y, verbose=verbose)
 
         # return History(*self._optimizer.fit(X, Y, self.n))
 

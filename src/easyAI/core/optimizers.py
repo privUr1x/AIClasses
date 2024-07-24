@@ -1,6 +1,5 @@
 from typing import Any, Callable, List, Union
 from abc import ABC, abstractmethod
-from easyAI.core.objects import Model
 
 """Module representing optimizers used for training models."""
 
@@ -8,10 +7,17 @@ from easyAI.core.objects import Model
 class Optimizer(ABC):
     """Class representing the abstraction to an optimizer."""
 
-    def __init__(self, learning_rate: Union[int, float], epochs: int, loss: Callable):
+    def __init__(
+        self,
+        model: "Model",
+        learning_rate: Union[int, float],
+        epochs: int,
+        loss: Callable,
+    ):
         self._lr: Union[int, float] = learning_rate
-        self._epochs: int = epochs 
+        self._epochs: int = epochs
         self._loss: Callable = loss
+        self._model: "Model" = model
 
     @property
     def loss(self):
@@ -28,90 +34,97 @@ class Optimizer(ABC):
         """The epochs property."""
         return self._epochs
 
-    def fit(X: list[Union[int, float]], Y: list[Union[int, float]]) -> dict:
-        pass
+    @property
+    def model(self):
+        """The model property."""
+        return self._model
 
-class SGD(Optimizer):
-    """Class representing Stochastic Gradient Descent."""
-
-    def __init__(self, learning_rate: Union[int, float], epochs: int, loss: Callable):
-        super().__init__(learning_rate, epochs, loss)
-
-    def fit(
-        self,
-        arquitecture: Model,
-        X: list[Union[int, float]],
-        Y: list[Union[int, float]],
-        inpt_size: int,
-    ) -> dict:
-        """
-        """
-        m = len(Y)  # Número de ejemplos de entrenamiento
-
-        for epoch in range(self.epochs):
-            for i in range(m):
-                # slice()
-
-                # Seleccionar un solo ejemplo
-                xi = X[i:(i+inpt_size)]
-                yi = Y[i]
-
-                # Predicción del modelo para el ejemplo actual
-                predictions = model.predict(xi)
-
-                # Calcular el error
-                error = predictions - yi
-
-                # Calcular el gradiente (derivada del error con respecto a los parámetros)
-                gradients = model.compute_gradients(xi, error)
-
-                # Actualizar los parámetros del modelo
-                model.update_parameters(self.learning_rate, gradients)
-
-            # Opcional: imprimir el progreso cada ciertos epochs
-            if (epoch + 1) % 10 == 0:
-                loss = self.calculate_loss(X, y, model)
-                print(f"Epoch {epoch + 1}/{self.epochs}, Loss: {loss:.4f}")
-
-class Adam(Optimizer):
-    """Class representing Adaptative Moment Estimation."""
-    pass
+    def fit(X: list[Union[int, float]], Y: list[Union[int, float]]) -> dict: ...
 
 
 class PLR(Optimizer):
     """Class representing Perceptron Learning Rule"""
 
-    def __init__(self, learning_rate: Union[int, float], epochs: int, loss: Callable):
-        super().__init__(learning_rate, epochs, loss)
+    def __init__(
+        self, model: "Perceptron", learning_rate: Union[int, float], epochs: int
+    ):
+        super().__init__(model, learning_rate, epochs, loss=None)
 
-    def __call__(
+        del self._loss
+
+    def fit(
         self,
-        P,  # The perceptron class itself
         X: List[Union[int, float]],
-        y: List[Union[int, float]],
+        Y: List[Union[int, float]],
         *,
         verbose: bool,
-        epochs: int
     ) -> Any:
-        for epoch in range(epochs):
-            for i in range(len(y)):
-                # Narrowing down y for X
-                eX = X[i * P.n : (i + 1) * P.n]
-                ey = y[i]
+        for epoch in range(self.epochs):
+            # The following code will always exec
+            for i, expected_y in enumerate(Y):
+                # Narrowing down Y for X
+                inpts = X[i * self.model.n : (i + 1) * self.model.n]
 
-                z = P.__call__(eX)[0]
+                net_output = self.model.__call__(inpts)
 
-                # Updating parameters
-                if z != ey:
-                    for n in P.output:  # [n0, n1, ..., nn]
-                        for i in range(n.n):  # [w-1, w1, ..., wn]
-                            n.w[i] += self._learning_rate * (ey - z) * eX[i]
-                        n.b += P._lr * (ey - z)
+                # Updating parameters (PLR)
+                if net_output != expected_y:
+                    for neuron in self.model.output_layer:  # [n0, n1, ..., nn]
+                        for i in range(neuron.n):  # [w-1, w1, ..., wn]
+                            neuron.w[i] += (
+                                self.learning_rate
+                                * (expected_y - net_output)
+                                * inpts[i]
+                            )
+                        neuron.b += self.model.learning_rate * (expected_y - net_output)
 
-                if verbose:
-                    print(f"Epoch {epoch}:\n\tModel output: {z}\n\tExpected output: {ey}")
+            if verbose:
+                print(
+                    f"Epoch {epoch}:\n\tModel output: {net_output}\n\tExpected output: {expected_y}"
+                )
 
-        return None
+
+class SGD(Optimizer):
+    """Class representing Stochastic Gradient Descent."""
+
+    def __init__(
+        self,
+        model: "Model",
+        learning_rate: Union[int, float],
+        epochs: int,
+        loss: Callable,
+    ):
+        super().__init__(model, learning_rate, epochs, loss)
+
+    def fit(
+        self, X: list[Union[int, float]], Y: list[Union[int, float]], *, verbose: bool
+    ) -> "History":
+        """
+        Schotastic Gradient Descent algorithm.
+        """
+        for epoch in range(self.epochs):
+            for i, expected_y in enumerate(Y):
+                # Seleccionar un solo ejemplo
+                inpts = X[i * self.model.n : (i + 1) * self.model.n]
+
+                # Predicción del modelo para el ejemplo actual
+                predictions = self.model.forward(inpts)
+
+            if verbose:
+                print(epoch)
+                print("Preds, Inpts, Expected_y", predictions, inpts, expected_y)
+
+    def compute_gradients(self):
+        pass
+
+    def update_parameters(self):
+        pass
+
+
+class Adam(Optimizer):
+    """Class representing Adaptative Moment Estimation."""
+
+    pass
 
 
 optimizers_map: dict = {

@@ -1,10 +1,8 @@
-from typing import Optional, Union, List
-from easyAI.utils.verifiers import verify_type, verify_components_type, verify_len
-from easyAI.core.objects import Layer, Model, Node
+from typing import Callable, Optional, Union, List
+from easyAI.utils.verifiers import verify_type, verify_components_type
+from easyAI.core.objects import Layer, Model
 from easyAI.layers import Dense, NodeLayer, Rec, Conv
-from easyAI.core.activations import activation_map
-from easyAI.core.loss import loss_map
-from easyAI.core.optimizers import optimizers_map
+from easyAI.core.optimizers import Optimizer, optimizers_map
 
 
 class Perceptron(Model):
@@ -29,20 +27,22 @@ class Perceptron(Model):
 
         self._name: str = "Simple Perceptron"
 
-        super().__init__([
-            NodeLayer(entries), 
-            Dense(1, activation=activation, name=self._name
-        )])
+        super().__init__(
+            [NodeLayer(entries), Dense(1, activation=activation, name=self._name)]
+        )
 
-    def __call__(self, X: List[Union[int, float]]) -> list:
-        return self.forward(X)
+    def __call__(self, X: List[Union[int, float]]) -> float:
+        r: float = self.forward(X)[0]
+
+        return r
 
     def fit(
         self,
         X: List[Union[int, float]],
-        y: List[Union[int, float]],
+        Y: List[Union[int, float]],
         *,
-        epochs: int = 100,
+        epochs: int = 1,
+        learning_rate: Union[int, float] = 10e-1,
         verbose: bool = False,
     ) -> None:
         """
@@ -50,17 +50,29 @@ class Perceptron(Model):
         """
         # Verify type of X and y, and verbose option
         X = verify_components_type(verify_type(X, list), (int, float))
-        y = verify_components_type(verify_type(y, list), (int, float))
+        Y = verify_components_type(verify_type(Y, list), (int, float))
         verify_type(verbose, bool)
         verify_type(epochs, int)
+        self._lr = verify_type(learning_rate, (int, float))
 
         # Verifing data sizes compatibility
-        if len(X) % self.n != 0:
+        if len(X) % len(Y) != 0:
             print("[!] Warning, X size and y size doesn't correspond.")
 
-        assert len(X) > self.n, "Expected X to be at least equal to entries amount."
+        assert len(X) >= self.n, "Expected X to be at least equal to entries amount."
 
-        return self._optimizer(X, y, epochs=epochs, verbose=verbose)
+        assert len(Y) >= len(self.output_layer)
+
+        self._optimizer = optimizers_map["plr"](
+            model=self, learning_rate=learning_rate, epochs=epochs
+        )
+
+        length_relation: int = len(X) // len(Y)
+
+        X = X[: len(X) * length_relation]
+        Y = Y[: len(Y) * length_relation]
+
+        return self._optimizer.fit(X, Y, verbose=verbose)
 
 
 class MLP(Model):
@@ -82,17 +94,36 @@ class MLP(Model):
         return super().__repr__() + f"\n{[layer for layer in self.layers]}"
 
     def fit(
-        X: list[Union[int, float]],
-        Y: list[Union[int, float]],
+        self,
+        X: List[Union[int, float]],
+        Y: List[Union[int, float]],
         *,
+        loss: str = "mse",
         epochs: int = 10,
-        learning_rate: Union[int, float] = 10e-2
-    ) -> None:
-        """Traings the model algorithmically based on the optimizer."""
-        super().fit(X, Y, loss="mse", epochs=epochs, learning_rate=learning_rate, optimizer="sgd")
+        optimizer: str = "sgd",
+        learning_rate: Union[int, float] = 10e-2,
+        verbose: bool = False
+    ):
+
+        return super().fit(
+            X,
+            Y,
+            loss=loss,
+            epochs=epochs,
+            optimizer=optimizer,
+            learning_rate=learning_rate,
+            verbose=verbose
+        )
+
 
 class SimpleRNN(Model):
-    """Recurent neural netwrok class."""
+    """Recurent neural network class."""
+
+    pass
+
+
+class SimpleConvNN(Model):
+    """Convolutional neural network class."""
 
     pass
 
