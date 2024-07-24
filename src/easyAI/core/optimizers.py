@@ -1,5 +1,6 @@
 from typing import Any, Callable, List, Union
 from abc import ABC, abstractmethod
+from easyAI.core.objects import Model
 
 """Module representing optimizers used for training models."""
 
@@ -38,16 +39,12 @@ class SGD(Optimizer):
 
     def fit(
         self,
+        arquitecture: Model,
         X: list[Union[int, float]],
         Y: list[Union[int, float]],
         inpt_size: int,
     ) -> dict:
         """
-        Ajusta los parámetros del modelo utilizando descenso de gradiente estocástico.
-
-        :param X: Lista de listas con características de entrenamiento.
-        :param y: Lista con valores reales.
-        :param model: Instancia del modelo que contiene los métodos predict y update_parameters.
         """
         m = len(Y)  # Número de ejemplos de entrenamiento
 

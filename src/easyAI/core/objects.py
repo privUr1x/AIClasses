@@ -489,6 +489,9 @@ class Model(ABC):
             optimizer in optimizers_map
         ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
 
+        # [TO-DO]
+        # Narrow down/prepare data size (intput & output)
+
         self._lr: Union[int, float] = verify_type(learning_rate, (int, float))
         self._loss: Callable = loss_map[loss]
         self._optimizer: Optimizer = optimizers_map[optimizer](
