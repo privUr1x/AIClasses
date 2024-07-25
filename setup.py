@@ -1,17 +1,21 @@
 from setuptools import setup, find_packages
+from toml import load
 
 # Load the content of the README file
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
-with open("pyproject.toml", "rb", encoding="utf-8") as f:
-    toml = f.read()
+with open("pyproject.toml", "r") as f:
+    toml = load(f)
 
 METADATA = toml["tool"]["poetry"]
 name: str = METADATA["name"]
 version: str = METADATA["version"]
 description: str = METADATA["description"]
-author_name, author_email = METADATA["authors"].split(" ")
+
+*author_name, author_email = METADATA["authors"][0].split(" ")
+
+author_name = " ".join(author_name)
 
 DEPENDENCIES = toml["tool"]["poetry"]["dependencies"]
 python_version: str = DEPENDENCIES["python"]

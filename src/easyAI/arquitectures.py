@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Union, List
 from easyAI.utils.verifiers import verify_type, verify_components_type
 from easyAI.core.objects import Layer, Model
-from easyAI.layers import Dense, NodeLayer, Rec, Conv
+from easyAI.layers import Dense, Input, Rec, Conv
 from easyAI.core.optimizers import Optimizer, optimizers_map
 
 
@@ -28,7 +28,7 @@ class Perceptron(Model):
         self._name: str = "Simple Perceptron"
 
         super().__init__(
-            [NodeLayer(entries), Dense(1, activation=activation, name=self._name)]
+            [Input(entries), Dense(1, activation=activation, name=self._name)]
         )
 
     def __call__(self, X: List[Union[int, float]]) -> float:
@@ -82,7 +82,7 @@ class MLP(Model):
         self,
         structure: List[Layer],
     ) -> None:
-        verify_components_type(verify_type(structure, list), (NodeLayer, Dense))
+        verify_components_type(verify_type(structure, list), (Input, Dense))
 
         super().__init__(structure=structure)
         self._name: str = "Multy-Layer Perceptron"
@@ -102,7 +102,7 @@ class MLP(Model):
         epochs: int = 10,
         optimizer: str = "sgd",
         learning_rate: Union[int, float] = 10e-2,
-        verbose: bool = False
+        verbose: bool = False,
     ):
 
         return super().fit(
@@ -112,7 +112,7 @@ class MLP(Model):
             epochs=epochs,
             optimizer=optimizer,
             learning_rate=learning_rate,
-            verbose=verbose
+            verbose=verbose,
         )
 
 

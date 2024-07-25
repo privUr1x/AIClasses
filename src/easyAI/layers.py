@@ -9,7 +9,7 @@ class Dense(Layer):
     def __init__(self, n: int, *, activation="relu", name="layer") -> None:
         super().__init__(n, activation=activation, name=name)
 
-class NodeLayer(Layer):
+class Input(Layer):
     """Class representing a node layer."""
 
     def __init__(self, n: int, *, name="layer") -> None:

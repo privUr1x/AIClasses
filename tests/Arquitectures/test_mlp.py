@@ -4,11 +4,11 @@ p = "/".join(__file__.split("/")[:-1])
 p += "/../../src/"
 path.append(p)
 
-from easyAI.layers import Dense, NodeLayer
+from easyAI.layers import Dense, Input
 from easyAI.arquitectures import MLP
 
 nn = MLP([
-    NodeLayer(1),
+    Input(1),
     Dense(1)
 ])
 

@@ -6,10 +6,10 @@ path.append(p)
 
 from easyAI.arquitectures import MLP 
 from easyAI.core.objects import Model
-from easyAI.layers import NodeLayer, Dense 
+from easyAI.layers import Input, Dense 
 
 nn: Model = MLP([
-    NodeLayer(5, name="Entry"),
+    Input(5, name="Entry"),
     Dense(20, activation="sigmoid"),
     Dense(12, activation="sigmoid"),
     Dense(8, activation="relu"),
