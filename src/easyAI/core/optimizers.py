@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Union, Protocol
 from abc import ABC, abstractmethod
 
 """Module representing optimizers used for training models."""
@@ -39,7 +39,10 @@ class Optimizer(ABC):
         """The model property."""
         return self._model
 
-    def fit(X: list[Union[int, float]], Y: list[Union[int, float]]) -> dict: ...
+    @abstractmethod
+    def fit(
+        X: List[Union[int, float]], Y: List[Union[int, float]], *, verbose: bool
+    ) -> dict: ...
 
 
 class PLR(Optimizer):

@@ -1,6 +1,16 @@
 from abc import ABC
 from random import random, randint
-from typing import Any, Iterator, Optional, Union, List, Callable, TypeVar, Generic
+from typing import (
+    Any,
+    Iterator,
+    Optional,
+    Type,
+    Union,
+    List,
+    Callable,
+    TypeVar,
+    Generic,
+)
 from easyAI.core.activations import activation_map
 from easyAI.utils.verifiers import verify_len, verify_type, verify_components_type
 from easyAI.utils.instances import search_instnce_name
@@ -25,18 +35,19 @@ class Neuron(object):
         self._bias: float = random()
         self._weights: List[float] = []
         self._activation: Callable = activation
-        self._lyr_i: int
-        self._ne_i: int
 
-    @property
-    def output(self):
-        """Calculate and return the output value of the neuron."""
-        return self.activation(self.z)
+        # The neuron index withing the layer it exists in
+        self._ne_i: int
 
     @property
     def z(self):
         """The z property."""
         return sum(x * w for x, w in zip(self.inputs, self.w)) + self.b
+
+    @property
+    def output(self):
+        """Calculate and return the output value of the neuron."""
+        return self.activation(self.z)
 
     @property
     def n(self) -> int:
@@ -51,7 +62,7 @@ class Neuron(object):
     @b.setter
     def b(self, value: Union[int, float]) -> None:
         """Set the bias of the neuron."""
-        self._bias = float(verify_type(value, (int, float)))
+        self._bias = verify_type(value, (int, float))
 
     @property
     def inputs(self) -> List[float]:
@@ -115,20 +126,19 @@ class Node(object):
             value (Union[int, float]): The initial value of the node.
         """
         self._id: int = randint(10_000, 99_999)
-        self._output: float = float(verify_type(value, (int, float)))
+        self._output: Union[int, float] = verify_type(value, (int, float))
 
-        self._lyr_i: int = 0
         self._ne_i: int
 
     @property
-    def output(self) -> float:
+    def output(self) -> Union[int, float]:
         """Return the value of the node."""
         return self._output
 
     @output.setter
     def output(self, value: Union[int, float]) -> None:
         """Set the value of the node."""
-        self._output = float(verify_type(value, (int, float)))
+        self._output = verify_type(value, (int, float))
 
     def __str__(self) -> str:
         """Return a string representation of the node."""
@@ -138,6 +148,12 @@ class Node(object):
         """Return a detailed string representation of the node."""
         return f"Node(): {self._id}"
 
+    def __eq__(self, value: object, /) -> bool:
+        return self.__dict__ == value.__dict__
+
+    def __ne__(self, value: object, /) -> bool:
+        return not self.__eq__(value)
+
 
 T = TypeVar("T", Node, Neuron)
 
@@ -145,7 +161,9 @@ T = TypeVar("T", Node, Neuron)
 class Layer(Generic[T]):
     """Class representing an abstract layer of Neurons or Nodes."""
 
-    def __init__(self, n: int, activation: str, *, name="layer") -> None:
+    def __init__(
+        self, n: int, activation: Union[str, Callable], *, name="layer"
+    ) -> None:
         """
         Initialize a Layer object.
 
@@ -154,17 +172,20 @@ class Layer(Generic[T]):
             activation (str): Activation function for the neurons.
             name (str): Name of the layer.
         """
-        if activation not in activation_map:
+
+        if activation in activation_map:
+            self._activation: Callable = activation_map[activation]
+        elif callable(activation):
+            self._activation: Callable = activation
+        else:
             raise ValueError(
-                f"Expected activation to be one of ({'/'.join([k for k in activation_map.keys()])})"
+                f"Expected activation to be callable or one of ({'/'.join([k for k in activation_map.keys()])})"
             )
 
-        self._activation: Callable = activation_map[activation]
         self._n: int = verify_type(n, int)
         self._name: str = verify_type(name, str)
 
-        if n < 1:
-            raise ValueError("Expected at least 1 Neuron or Node for a Layer")
+        assert n >= 1, "Expected at least '1' Neuron or Node for a Layer"
 
         self._structure: List[Union[Node, Neuron]] = [
             Neuron(self._activation) for _ in range(n)
@@ -174,12 +195,13 @@ class Layer(Generic[T]):
 
     @property
     def n(self):
-        """The n property."""
+        """The amount of neurons/nodes."""
         return self._n
 
-    def __call__(self) -> List[Union[Node, Neuron]]:
-        """Return the structure of the layer."""
-        return self._structure
+    @property
+    def activation(self):
+        """The activation property."""
+        return self._activation
 
     def __str__(self) -> str:
         """Return a string representation of the layer."""
@@ -188,6 +210,12 @@ class Layer(Generic[T]):
     def __repr__(self) -> str:
         """Return a detailed string representation of the layer."""
         return f"Layer({self._n}):\n\t{self._structure}\n"
+
+    def __eq__(self, value: object, /) -> bool:
+        return self.__dict__ == value.__dict__
+
+    def __ne__(self, value: object, /) -> bool:
+        return not self.__eq__(value)
 
     def __len__(self) -> int:
         """Return the number of neurons or nodes in the layer."""
@@ -271,11 +299,6 @@ class Model(ABC):
 
         Args:
             structure (List[Layer]): The structure of the neural network.
-            *
-            loss (str): The loss function for the model.
-            optimizer (str): The optimizer algoritmh/method to be used for training.
-            learning_rate (Union[int, float]): The learning rate for the model.
-            epochs (int): The epochs value for training.
         """
         self._name: str = "Abstract Model."
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_components_type(
@@ -284,6 +307,7 @@ class Model(ABC):
 
         self._lr: Union[int, float]
         self._loss: Callable
+        self._optimizer: Optimizer
 
         self.__set_input_layer()
         self.__set_connections()
@@ -310,11 +334,14 @@ class Model(ABC):
 
     @property
     def _output(self):
-        """The output property."""
+        """
+        Return the output of the Model based on the current inputs.
+        ![NOTE] The current inputs are just junk values.
+        """
         return [self.output_layer[i].output for i in range(len(self.output_layer))]
 
     @property
-    def learning_rate(self) -> float:
+    def learning_rate(self) -> Union[int, float]:
         """Return the learning rate of the model."""
         return self._lr
 
@@ -329,22 +356,49 @@ class Model(ABC):
         return self._loss
 
     @loss.setter
-    def loss(self, value: str) -> None:
+    def loss(self, value: Union[str, Callable]) -> None:
         """Set the loss function of the model."""
 
-        assert (
-            value in loss_map
-        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+        if value in loss_map:
+            self._loss = loss_map[value]
 
-        self._loss = loss_map[value]
+        elif callable(value):
+            self._loss = value
+
+        else:
+            raise ValueError(
+                f"Expected loss to be callable or one of ({'/'.join([k for k in loss_map.keys()])})"
+            )
 
     @loss.deleter
     def loss(self) -> None:
         del self._loss
 
     @property
+    def optimizer(self) -> Optimizer:
+        """The optimizer property."""
+        return self._optimizer
+
+    @optimizer.setter
+    def optimizer(self, optimizer: Union[str, Optimizer]):
+        """Sets the optimizer based on the type of the argument."""
+        if isinstance(optimizer, str):
+            if optimizer in optimizers_map:
+                self._optimizer = optimizers_map[optimizer]
+            else:
+                raise ValueError(
+                    f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
+                )
+
+        elif issubclass(optimizer, Optimizer):
+            self._optimizer = optimizer
+
+        else:
+            raise TypeError("Unsupported type for optmizer.")
+
+    @property
     def depth(self) -> int:
-        """Return the depth of the model (number of layers)."""
+        """Return the depth of the model (number of total layers)."""
         return len(self._layers)
 
     @property
@@ -360,23 +414,24 @@ class Model(ABC):
 
     @singledispatchmethod
     def __getitem__(self, _: Any, /) -> None:
-        """Docstr"""
-
         raise TypeError("Not supported type.")
 
     @__getitem__.register(tuple)
     def _(self, indx: tuple, /):
+        """Gets the Node/Neuron based on two indexes."""
         verify_len(indx, 2)
         return self._layers[indx[0]][indx[1]]
 
     @__getitem__.register(float)
     def _(self, indx: float, /):
+        """Gets the layer based on the given index."""
         i: list = str(indx).split(".")
         verify_len(i, 2)
         return self._layers[i[0]][i[1]]
 
     @__getitem__.register(int)
     def _(self, indx, /):
+        """Gets the layer based on the given index."""
         if len(self._layers) > indx >= 0 or len(self._layers) <= indx < 0:
             return self._layers[indx]
 
@@ -384,6 +439,7 @@ class Model(ABC):
 
     @__getitem__.register(list)
     def _(self, indx: list[int], /):
+        """Gets the layers based on the given indexes."""
         l: list[Layer] = []
 
         for i in indx:
@@ -426,7 +482,6 @@ class Model(ABC):
             # Not reaching Nodes
             for n in self._layers[i]:
                 n.inputnodes = [node for node in self._layers[i - 1]]
-                n._lyr_i = i
 
     def add(self, layer: Layer, indx: int = -1) -> None:
         """Add a layer to the model."""
@@ -469,12 +524,14 @@ class Model(ABC):
         X,
         Y,
         *,
-        loss: str,
+        loss: Union[str, Callable],
         epochs: int,
         optimizer: str,
         learning_rate: Union[int, float],
-        verbose: bool
+        verbose: bool,
     ):
+        # Raise assertions, init attrs and readjust X & Y to belong to the submatrix space of supported dimensions
+
         verify_components_type(verify_type(X, list), (int, float))
         verify_components_type(verify_type(Y, list), (int, float))
         verify_type(int(epochs), int)
@@ -485,26 +542,20 @@ class Model(ABC):
 
         assert epochs >= 1, "Expected at least 1 epoch."
 
-        assert (
-            loss in loss_map
-        ), f"Expected loss to be one of ({'/'.join([k for k in loss_map.keys()])})"
+        self.loss = loss
+        self.lr = learning_rate
+        self.optimizer = optimizer
 
-        assert (
-            optimizer in optimizers_map
-        ), f"Expected optimizer to be one of ({'/'.join([k for k in optimizers_map.keys()])})"
+        # It is needed to Initialize the optimizer with the correct params
+        if not isinstance(self.optimizer, Optimizer):
+            self._optimizer = self._optimizer(model=self, learning_rate=self.lr, epochs=epochs, loss=self.loss)
 
         length_relation: int = len(X) // len(Y)
-
-        self._lr: Union[int, float] = verify_type(learning_rate, (int, float))
-        self._loss: Callable = loss_map[loss]
-        self._optimizer: Optimizer = optimizers_map[optimizer](
-            model=self, learning_rate=self.learning_rate, epochs=epochs, loss=self.loss
-        )
 
         X = X[: len(X) * length_relation]
         Y = Y[: len(Y) * length_relation]
 
-        return self._optimizer.fit(X, Y, verbose=verbose)
+        return self.optimizer.fit(X=X, Y=Y, verbose=verbose)
 
         # return History(*self._optimizer.fit(X, Y, self.n))
 
