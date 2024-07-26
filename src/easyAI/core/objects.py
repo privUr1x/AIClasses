@@ -526,7 +526,7 @@ class Model(ABC):
         *,
         loss: Union[str, Callable],
         epochs: int,
-        optimizer: str,
+        optimizer: Union[str, Optimizer],
         learning_rate: Union[int, float],
         verbose: bool,
     ):
@@ -548,7 +548,9 @@ class Model(ABC):
 
         # It is needed to Initialize the optimizer with the correct params
         if not isinstance(self.optimizer, Optimizer):
-            self._optimizer = self._optimizer(model=self, learning_rate=self.lr, epochs=epochs, loss=self.loss)
+            self._optimizer = self._optimizer(
+                model=self, learning_rate=self.lr, epochs=epochs, loss=self.loss
+            )
 
         length_relation: int = len(X) // len(Y)
 
@@ -556,8 +558,6 @@ class Model(ABC):
         Y = Y[: len(Y) * length_relation]
 
         return self.optimizer.fit(X=X, Y=Y, verbose=verbose)
-
-        # return History(*self._optimizer.fit(X, Y, self.n))
 
     def evaluate(self) -> None:
         """Evaluate the model's performance."""
@@ -574,18 +574,3 @@ class Model(ABC):
     def summary(self) -> None:
         """Print a summary of the model."""
         raise NotImplemented
-
-
-class History:
-    """Class representing a history object for tracking training progress."""
-
-    def __init__(self):
-        self.history = {"loss": [], "accuracy": [], "val_loss": [], "val_accuracy": []}
-
-    def update(
-        self, loss: float, accuracy: float, val_loss: float, val_accuracy: float
-    ):
-        self.history["loss"].append(loss)
-        self.history["accuracy"].append(accuracy)
-        self.history["val_loss"].append(val_loss)
-        self.history["val_accuracy"].append(val_accuracy)

@@ -1,4 +1,5 @@
 from typing import Any, Callable, List, Union, Protocol
+from easyAI.core.metrics import History
 from abc import ABC, abstractmethod
 
 """Module representing optimizers used for training models."""
@@ -43,7 +44,6 @@ class Optimizer(ABC):
     def fit(
         X: List[Union[int, float]], Y: List[Union[int, float]], *, verbose: bool
     ) -> dict: ...
-
 
 class PLR(Optimizer):
     """Class representing Perceptron Learning Rule"""
@@ -101,7 +101,7 @@ class SGD(Optimizer):
 
     def fit(
         self, X: list[Union[int, float]], Y: list[Union[int, float]], *, verbose: bool
-    ) -> "History":
+    ) -> History:
         """
         Schotastic Gradient Descent algorithm.
         """
@@ -130,7 +130,7 @@ class Adam(Optimizer):
     pass
 
 
-optimizers_map: dict = {
+optimizers_map: dict[str, Optimizer] = {
     "sgd": SGD,
     "adam": Adam,
     "plr": PLR,
