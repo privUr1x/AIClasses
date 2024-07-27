@@ -108,13 +108,11 @@ class SGD(Optimizer):
         """
         for epoch in range(self.epochs):
             for i in range(len(Y)):
-                # Seleccionar un solo ejemplo
                 inpts: list = X[i * self.model.n : (i + 1) * self.model.n]
                 expected_y: list = Y[
                     i * self.model.output_layer.n : (i + 1) * self.model.output_layer.n
                 ]
 
-                # Predicción del modelo para el ejemplo actual
                 predictions: list = self.model.forward(inpts)
 
                 if predictions != expected_y:

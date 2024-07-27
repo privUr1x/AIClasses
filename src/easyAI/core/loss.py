@@ -1,13 +1,10 @@
 #!/usr/bin/python3
 
-
 """
 Module representing a set of commonly used loss functions.
 """
 
 from typing import Optional, Union
-
-# from easyAI.clsstools.Verifiers import verify_type, verify_components_type
 from math import log
 
 
@@ -15,41 +12,44 @@ def mean_squared_error(
     tags: Union[int, float], pred: Union[int, float]
 ) -> float:
     """
-    Calcula el error cuadrático medio entre las etiquetas verdaderas y las predicciones.
+    Calculates the mean squared error between true labels and predictions.
 
     Args:
+        tags (Union[int, float]): True labels.
+        pred (Union[int, float]): Predicted values.
 
     Returns:
+        float: Mean squared error between tags and pred.
     """
     return sum([(t - p) ** 2 for t, p in zip(tags, pred)]) / len(tags)
 
 
 def binary_cross_entropy(y_true: Union[int, float], y_pred: Union[int, float]) -> float:
     """
-    Calcula la entropía cruzada binaria entre las etiquetas verdaderas y las predicciones.
+    Calculates binary cross-entropy between true labels and predictions.
 
     Args:
-        y_true (float): Valor verdadero (etiqueta binaria).
-        y_pred (float): Valor predicho (probabilidad estimada).
+        y_true (float): True value (binary label).
+        y_pred (float): Predicted value (estimated probability).
 
     Returns:
-        float: Entropía cruzada binaria entre y_true e y_pred.
+        float: Binary cross-entropy between y_true and y_pred.
     """
-    epsilon = 1e-15  # para evitar log(0), se añade un pequeño valor epsilon
+    epsilon = 1e-15  # To avoid log(0), add a small epsilon value
     y_pred = max(epsilon, min(y_pred, 1 - epsilon))
     return -(y_true * log(y_pred) + (1 - y_true) * log(1 - y_pred))
 
 
 def categorical_cross_entropy(y_true: list, y_pred: list) -> float:
     """
-    Calcula la entropía cruzada categórica entre las etiquetas verdaderas y las predicciones.
+    Calculates categorical cross-entropy between true labels and predictions.
 
     Args:
-        y_true (list): Lista de valores verdaderos codificados como one-hot.
-        y_pred (list): Lista de probabilidades predichas para cada clase.
+        y_true (list): List of true values encoded as one-hot.
+        y_pred (list): List of predicted probabilities for each class.
 
     Returns:
-        float: Entropía cruzada categórica entre y_true e y_pred.
+        float: Categorical cross-entropy between y_true and y_pred.
     """
     loss = 0.0
     for true, pred in zip(y_true, y_pred):
@@ -63,15 +63,15 @@ def huber_loss(
     delta: Optional[Union[int, float]] = 1.0,
 ) -> float:
     """
-    Calcula la función de pérdida de Huber entre las etiquetas verdaderas y las predicciones.
+    Calculates the Huber loss between true labels and predictions.
 
     Args:
-        y_true (float): Valor verdadero.
-        y_pred (float): Valor predicho.
-        delta (float, optional): Parámetro de umbral. Por defecto es 1.0.
+        y_true (float): True value.
+        y_pred (float): Predicted value.
+        delta (float, optional): Threshold parameter. Defaults to 1.0.
 
     Returns:
-        float: Pérdida de Huber entre y_true e y_pred.
+        float: Huber loss between y_true and y_pred.
     """
     error = abs(y_true - y_pred)
     if error <= delta:
@@ -82,14 +82,14 @@ def huber_loss(
 
 def kl_divergence(p: list, q: list) -> float:
     """
-    Calcula la divergencia de Kullback-Leibler entre dos distribuciones de probabilidad p y q.
+    Calculates the Kullback-Leibler divergence between two probability distributions p and q.
 
     Args:
-        p (list): Distribución de probabilidad p.
-        q (list): Distribución de probabilidad q.
+        p (list): Probability distribution p.
+        q (list): Probability distribution q.
 
     Returns:
-        float: Divergencia de Kullback-Leibler entre p y q.
+        float: Kullback-Leibler divergence between p and q.
     """
     divergence = 0.0
     for i in range(len(p)):
@@ -105,3 +105,4 @@ loss_map: dict = {
     "huber": huber_loss,
     "kl-divergence": kl_divergence,
 }
+

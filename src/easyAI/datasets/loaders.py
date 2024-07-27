@@ -1,4 +1,3 @@
-def cargar_datos(ruta):
-    # Código para cargar y preprocesar datos
+def load_data(path: str):
     pass
 

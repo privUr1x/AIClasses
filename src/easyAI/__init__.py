@@ -26,10 +26,10 @@ with open(tomlpath, "rb") as f:
 
 VERSION = toml["tool"]["poetry"]["version"]
 
-# Definición de la versión del paquete
+# Version package definition
 __version__ = VERSION 
 
-# Configuración del registro para el paquete
+# Registry config
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -40,21 +40,21 @@ from random import seed
 
 seed(config["seed"])
 
-# Añadinedo path del paquete
+# Appending package path
 from sys import path
 from os.path import dirname, abspath
 
 path.append(dirname(abspath(__file__)))
 
-# Importación de submódulos
+# Submodules import
 from . import arquitectures
 from . import layers
 
-# Importación de subpaquetes
+# Subpackages import
 from .core import objects
 from .core import activations
 from .core import loss
 from .core import optimizers
 
-# Definir el API del paquete mediante __all__
+# Package API definition through __all__
 __all__ = ["activations", "loss", "objects", "optimizers", "arquitectures", "layers"]
