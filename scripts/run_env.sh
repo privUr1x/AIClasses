@@ -1,3 +1,4 @@
+source ../../../../Envs/easyAI/start/bin/activate
 #!/bin/bash
 
 # Intentar ejecutar el comando
