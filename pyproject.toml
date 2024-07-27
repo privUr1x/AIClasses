@@ -7,13 +7,20 @@ name = "easyAI"
 version = "0.0.1"
 description = "A collection of tools for deep learning using Python"
 authors = ["Uriel Rubio <privuri@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/privUr1x/AIClasses"
+bugs = "https://github.com/privUr1x/AIClasses/issues"
+docs = "https://github.com/privUr1x/AIClasses/wiki"
 
 [tool.poetry.dependencies]
 python = "^3.8"
 typing = "^3.7.4.3"
 random = ""
 functools = ""
+plotly = ""
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
 
+[tool.poetry.extras]
+dev = ["black"]

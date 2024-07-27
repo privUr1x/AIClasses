@@ -162,8 +162,7 @@ class Layer(Generic[T]):
     """Class representing an abstract layer of Neurons or Nodes."""
 
     def __init__(
-        self, n: int, activation: Union[str, Callable], *, name="layer"
-    ) -> None:
+        self, n: int, activation: Union[str, Callable]) -> None:
         """
         Initialize a Layer object.
 
@@ -183,7 +182,6 @@ class Layer(Generic[T]):
             )
 
         self._n: int = verify_type(n, int)
-        self._name: str = verify_type(name, str)
 
         assert n >= 1, "Expected at least '1' Neuron or Node for a Layer"
 
@@ -205,11 +203,11 @@ class Layer(Generic[T]):
 
     def __str__(self) -> str:
         """Return a string representation of the layer."""
-        return f"Layer({self._n}):\n\t{self._structure}\n"
+        return f"{type(self).__name__}({self._n}):\n\t{self._structure}\n"
 
     def __repr__(self) -> str:
         """Return a detailed string representation of the layer."""
-        return f"Layer({self._n}):\n\t{self._structure}\n"
+        return f"{type(self).__name__}({self._n}):\n\t{self._structure}\n"
 
     def __eq__(self, value: object, /) -> bool:
         return self.__dict__ == value.__dict__
@@ -300,7 +298,7 @@ class Model(ABC):
         Args:
             structure (List[Layer]): The structure of the neural network.
         """
-        self._name: str = "Abstract Model."
+        self._name: str = type(self).__name__
         self._layers: List[Layer[Union[Node, Neuron]]] = verify_components_type(
             verify_type(structure, list), Layer
         )
@@ -552,10 +550,8 @@ class Model(ABC):
                 model=self, learning_rate=self.lr, epochs=epochs, loss=self.loss
             )
 
-        length_relation: int = len(X) // len(Y)
-
-        X = X[: len(X) * length_relation]
-        Y = Y[: len(Y) * length_relation]
+        X = X[: len(X) // self.n * len(X)]
+        Y = Y[: len(Y) // self.output_layer.n * len(Y) ]
 
         return self.optimizer.fit(X=X, Y=Y, verbose=verbose)
 

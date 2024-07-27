@@ -25,8 +25,6 @@ class Perceptron(Model):
             if int(entries) == entries:
                 entries = int(entries)
 
-        self._name: str = "Simple Perceptron"
-
         super().__init__(
             [Input(entries), Dense(1, activation=activation, name=self._name)]
         )
@@ -85,7 +83,6 @@ class MLP(Model):
         verify_components_type(verify_type(structure, list), (Input, Dense))
 
         super().__init__(structure=structure)
-        self._name: str = "Multy-Layer Perceptron"
 
     def __str__(self) -> str:
         return super().__str__() + f"\n{[layer for layer in self.layers]}"
@@ -95,8 +92,8 @@ class MLP(Model):
 
     def fit(
         self,
-        X: List[Union[int, float]],
-        Y: List[Union[int, float]],
+        X: Union[List[int], List[float], List[Union[int, float]]],
+        Y: Union[List[int], List[float], List[Union[int, float]]],
         *,
         loss: str = "mse",
         epochs: int = 10,

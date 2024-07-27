@@ -6,14 +6,14 @@ from easyAI.core.objects import Layer, Neuron, Node
 class Dense(Layer):
     """Class representing a fully connected layer."""
 
-    def __init__(self, n: int, *, activation="relu", name="Fully Connected Layer") -> None:
-        super().__init__(n, activation=activation, name=name)
+    def __init__(self, n: int, *, activation="relu") -> None:
+        super().__init__(n, activation=activation)
 
 class Input(Layer):
     """Class representing a node layer."""
 
-    def __init__(self, n: int, *, name="Input layer") -> None:
-        super().__init__(n, activation="step", name=name)
+    def __init__(self, n: int) -> None:
+        super().__init__(n, activation="step")
 
         self._structure = [Node() for _ in range(self.n)]
 
@@ -24,14 +24,14 @@ class Input(Layer):
 class Conv(Layer):
     """Class representing a convolutional network layer."""
 
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
+    def __init__(self, n: int, activation="relu") -> None:
         raise NotImplemented
-        super().__init__(n, activation=activation, name=name)
+        super().__init__(n, activation=activation)
 
 class Rec(Layer):
     """Class representing a recurrent network layer."""
 
-    def __init__(self, n: int, activation="relu", name="layer") -> None:
+    def __init__(self, n: int, activation="relu") -> None:
         raise NotImplemented
-        super().__init__(n, activation=activation, name=name)
+        super().__init__(n, activation=activation)
 

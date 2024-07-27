@@ -43,7 +43,8 @@ class Optimizer(ABC):
     @abstractmethod
     def fit(
         X: List[Union[int, float]], Y: List[Union[int, float]], *, verbose: bool
-    ) -> dict: ...
+    ) -> History: ...
+
 
 class PLR(Optimizer):
     """Class representing Perceptron Learning Rule"""
@@ -100,7 +101,7 @@ class SGD(Optimizer):
         super().__init__(model, learning_rate, epochs, loss)
 
     def fit(
-        self, X: list[Union[int, float]], Y: list[Union[int, float]], *, verbose: bool
+        self, X: Union[list[int], list[float], list[Union[int, float]]], Y: Union[list[int], list[float], list[Union[int, float]]], *, verbose: bool
     ) -> History:
         """
         Schotastic Gradient Descent algorithm.
@@ -109,7 +110,9 @@ class SGD(Optimizer):
             for i in range(len(Y)):
                 # Seleccionar un solo ejemplo
                 inpts: list = X[i * self.model.n : (i + 1) * self.model.n]
-                expected_y: list = Y[i * self.model.output_layer.n: (i + 1) * self.model.output_layer.n] 
+                expected_y: list = Y[
+                    i * self.model.output_layer.n : (i + 1) * self.model.output_layer.n
+                ]
 
                 # Predicción del modelo para el ejemplo actual
                 predictions: list = self.model.forward(inpts)

@@ -6,21 +6,22 @@ Module representing a set of commonly used loss functions.
 """
 
 from typing import Optional, Union
+
 # from easyAI.clsstools.Verifiers import verify_type, verify_components_type
 from math import log
 
-def mean_squared_error(y_true: Union[int, float], y_pred: Union[int, float]) -> float:
+
+def mean_squared_error(
+    tags: Union[int, float], pred: Union[int, float]
+) -> float:
     """
     Calcula el error cuadrático medio entre las etiquetas verdaderas y las predicciones.
 
     Args:
-        y_true (float): Valor verdadero.
-        y_pred (float): Valor predicho.
 
     Returns:
-        float: Error cuadrático medio entre y_true e y_pred.
     """
-    return (y_true - y_pred) ** 2
+    return sum([(t - p) ** 2 for t, p in zip(tags, pred)]) / len(tags)
 
 
 def binary_cross_entropy(y_true: Union[int, float], y_pred: Union[int, float]) -> float:

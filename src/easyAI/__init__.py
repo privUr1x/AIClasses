@@ -4,15 +4,15 @@ easyAI
 
 For the sake of simplicity and the python motto, easyAI allows deep learning models to be used as a reusable package. Using python as the engine without the need for any data science framework.
 
-Submódulos disponibles:
-- core: Core funciona como el motor de la librería partiendo de la base formada por algunas clases que permiten la creación de modelos complejos.
-- classtools: Ofrece herramientas para la creación de clases.
-- Arquitectures: Diversidad de modelos de deep learning utilizables.
+Available submodules:
+- core: Core works as the engine of the library consisting in base clases which allows the creation of complex models.
+- classtools: Ofers tools for class creation.
+- Arquitectures: Diversity of Deep Learning arquitectures.
 
-Ejemplo de uso:
+Usage:
 >>> from Arquitectures import Perceptron
 >>> p = Perceptron(2) # Number of inputs/entries 
->>> p.fit(X, y, verbose = True)
+>>> history = p.fit(X, y, verbose=True)
 """
 
 from tomllib import load
